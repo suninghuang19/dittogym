@@ -1,0 +1,19 @@
+{
+    "n_grid": 128,
+    "mu_0": 8000,
+    "lambda_0": 1000,
+    "yield_stress": 65,
+    "mass": [2, 2],
+    "particle_num_list": [12000, 8000],
+    "gravity": [0, -19],
+    "offset": [-0.15, 0.0],
+    "max_actuation": 50,
+    "action_dim": 128,
+    "action_res_resize": 4,
+    "obs_res": 64,
+    "obs_res_resize": 8,
+    "repeat_times": 100,
+    "reward_params": [20, 5, 1, 0.0002, 15],
+    "visualize": false,
+    "save_file_name": "DIG"
+}

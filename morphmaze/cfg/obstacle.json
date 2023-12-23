@@ -1,0 +1,19 @@
+{
+    "n_grid": 128,
+    "mu_0": 14000,
+    "lambda_0": 1000,
+    "yield_stress": 75,
+    "mass": [2],
+    "particle_num_list": [14400],
+    "gravity": [0, -5],
+    "offset": [0.0, 0.16],
+    "max_actuation": 45,
+    "action_dim": 128,
+    "action_res_resize": 8,
+    "obs_res": 64,
+    "obs_res_resize": 8,
+    "repeat_times": 100,
+    "reward_params": [2, 6, 1, 0.0002, 3],
+    "visualize": false,
+    "save_file_name": "OBSTACLE"
+}

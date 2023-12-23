@@ -1,0 +1,20 @@
+{
+    "n_grid": 128,
+    "mu_0": 10000,
+    "lambda_0": 1000,
+    "yield_stress": 62,
+    "mass": [2],
+    "particle_num_list": [16000],
+    "gravity": [0, -0],
+    "offset": [0.4, 0.5],
+    "max_actuation": 82,
+    "action_dim": 8192,
+    "action_res_resize": 1,
+    "obs_res": 64,
+    "obs_res_resize": 8,
+    "repeat_times": 100,
+    "reward_params": [23],
+    "visualize": false,
+    "save_file_name": "SHAPE_MATCH",
+    "target": "STAR"
+}
