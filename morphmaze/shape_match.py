@@ -8,13 +8,13 @@ from morphmaze.morphmaze import morphmaze
 
 @ti.data_oriented
 class SHAPE_MATCH(morphmaze):
-    def __init__(self, cfg_path=None, action_dim=2*32**2):
+    def __init__(self, action_dim, cfg_path=None):
         super(SHAPE_MATCH, self).__init__(cfg_path=cfg_path, action_dim=action_dim)        
         print("*******************Morphological_Maze SHAPE_MATCH-v0*******************")
         # initial robot task-SHAPE_MATCH
         self.add_circle
         self.add_circle(0.0, 0.0, 0.17, is_object=False)
-        self.target_robot = cv2.imread(os.path.join(self.current_directory, "./target_for_shape_match/{}.jpg".format(cfg["target"])), cv2.IMREAD_GRAYSCALE).astype(np.int32)
+        self.target_robot = cv2.imread(os.path.join(self.current_directory, "./target_for_shape_match/{}.jpg".format(self.cfg["target"])), cv2.IMREAD_GRAYSCALE).astype(np.int32)
         self.target_robot[self.target_robot < 125] = 0
         self.target_robot[self.target_robot >= 125] = 255
         for i in range(len(self.x_list)):

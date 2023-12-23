@@ -9,7 +9,7 @@ import taichi as ti
 
 @ti.data_oriented
 class morphmaze(gym.Env):
-    def __init__(self, cfg_path=None, action_dim=2*8**2):
+    def __init__(self, action_dim, cfg_path=None):
         print("*******************Welcome to Morphological Maze*******************")
         current_file_path = os.path.abspath(__file__)
         self.current_directory = os.path.dirname(current_file_path)
@@ -17,8 +17,9 @@ class morphmaze(gym.Env):
             print("No config file!")
             return
         else:
-            self.set_params(os.path.join(self.current_directory, cfg_path))
-        self.cfg["action_dim"] = action_dim
+            cfg = json.load(open(os.path.join(self.current_directory, cfg_path), "r"))
+            cfg["action_dim"] = action_dim
+            self.set_params(cfg)
         self.obs_auto_reset = True
         self.gui = None
         if not os.path.exists(os.path.join(self.current_directory, "../results")):
@@ -27,8 +28,7 @@ class morphmaze(gym.Env):
             os.makedirs(os.path.join(self.current_directory, "../results", self.save_file_name))
         json.dump(self.cfg, open(self.current_directory + "/../results/" + self.save_file_name + "/config.json", "w"), indent=4, sort_keys=True)
 
-    def set_params(self, cfg_path):
-        cfg = json.load(open(cfg_path, "r"))
+    def set_params(self, cfg):
         self.reward_params = cfg["reward_params"]
         self.frames_num = 0
         self.visualize = cfg["visualize"]

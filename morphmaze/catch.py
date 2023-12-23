@@ -12,7 +12,7 @@ OFFSET = 6
 
 @ti.data_oriented
 class CATCH(morphmaze):
-    def __init__(self, cfg_path=None, action_dim=2*8**2):
+    def __init__(self, action_dim, cfg_path=None):
         super(CATCH, self).__init__(cfg_path=cfg_path, action_dim=action_dim)
         print("*******************Morphological Maze CATCH-v0*******************")
         # initial robot task-CATCH

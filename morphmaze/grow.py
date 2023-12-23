@@ -11,7 +11,7 @@ OBS_ACT_CENTER_Y = 0.4
 
 @ti.data_oriented
 class GROW(morphmaze):
-    def __init__(self, cfg_path=None, action_dim=2*8**2):
+    def __init__(self, action_dim, cfg_path=None):
         super(GROW, self).__init__(cfg_path=cfg_path, action_dim=action_dim)
         print("*******************Morphological_Maze GROW-v0*******************")
         # initial robot task-GROW
