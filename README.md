@@ -1,4 +1,4 @@
-# Morphological_Maze
+# Morphological Maze
 
 Official Gym Environment Implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***
 
