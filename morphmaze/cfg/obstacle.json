@@ -14,6 +14,6 @@
     "obs_res_resize": 8,
     "repeat_times": 100,
     "reward_params": [2, 6, 1, 0.0002, 3],
-    "visualize": false,
-    "save_file_name": "OBSTACLE"
+    "visualize": true,
+    "save_file_name": "."
 }

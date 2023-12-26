@@ -11,8 +11,8 @@ OBS_ACT_CENTER_Y = 0.4
 
 @ti.data_oriented
 class DIG(morphmaze):
-    def __init__(self, action_dim, cfg_path=None):
-        super(DIG, self).__init__(cfg_path=cfg_path, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize):
+        super(DIG, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
         print("*******************Morphological Maze DIG-v0*******************")
         # initial robot task-DIG
         self.add_circle(-0.05, 0.5, 0.14, is_object=False) 

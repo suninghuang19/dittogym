@@ -10,8 +10,8 @@ OBS_ACT_CENTER_Y = 0.28
 
 @ti.data_oriented
 class KICK(morphmaze):
-    def __init__(self, action_dim, cfg_path=None):
-        super(KICK, self).__init__(cfg_path=cfg_path, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize):
+        super(KICK, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
         print("*******************Morphological Maze KICK-v0*******************")
         # initial robot task-KICK
         self.add_circle(0.0, 0.0, 0.18, is_object=False)

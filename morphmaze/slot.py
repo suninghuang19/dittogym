@@ -12,8 +12,8 @@ GAP_1 = 40
 
 @ti.data_oriented
 class SLOT(morphmaze):
-    def __init__(self, action_dim, cfg_path=None):
-        super(SLOT, self).__init__(cfg_path=cfg_path, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize):
+        super(SLOT, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
         print("*******************Morphological Maze SLOT-v0*******************")
         # initial robot task-SLOT
         self.obs_auto_reset = False

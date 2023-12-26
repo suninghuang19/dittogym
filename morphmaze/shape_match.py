@@ -8,8 +8,8 @@ from morphmaze.morphmaze import morphmaze
 
 @ti.data_oriented
 class SHAPE_MATCH(morphmaze):
-    def __init__(self, action_dim, cfg_path=None):
-        super(SHAPE_MATCH, self).__init__(cfg_path=cfg_path, action_dim=action_dim)        
+    def __init__(self, cfg_path, action_dim, action_res_resize):
+        super(SHAPE_MATCH, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)      
         print("*******************Morphological_Maze SHAPE_MATCH-v0*******************")
         # initial robot task-SHAPE_MATCH
         self.add_circle

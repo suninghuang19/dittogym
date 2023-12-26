@@ -6,33 +6,30 @@ import time
 import numpy as np
 import taichi as ti
 
-
 @ti.data_oriented
 class morphmaze(gym.Env):
-    def __init__(self, action_dim, cfg_path=None):
+    def __init__(self, cfg_path=None, action_dim=None, action_res_resize=None):
         print("*******************Welcome to Morphological Maze*******************")
         current_file_path = os.path.abspath(__file__)
         self.current_directory = os.path.dirname(current_file_path)
+        cfg = json.load(open(cfg_path, "r"))
         if cfg_path is None:
-            print("No config file!")
+            print("Please specify the config file path!")
             return
-        else:
-            cfg = json.load(open(os.path.join(self.current_directory, cfg_path), "r"))
+        if action_dim is not None:
             cfg["action_dim"] = action_dim
-            self.set_params(cfg)
+        if action_res_resize is not None:
+            cfg["action_res_resize"] = action_res_resize
+        self.set_params(cfg)
         self.obs_auto_reset = True
         self.gui = None
-        if not os.path.exists(os.path.join(self.current_directory, "../results")):
-            os.makedirs(os.path.join(self.current_directory, "../results"))
-        if not os.path.exists(os.path.join(self.current_directory, "../results", self.save_file_name)):
-            os.makedirs(os.path.join(self.current_directory, "../results", self.save_file_name))
-        json.dump(self.cfg, open(self.current_directory + "/../results/" + self.save_file_name + "/config.json", "w"), indent=4, sort_keys=True)
+        json.dump(self.cfg, open(self.save_file_name + "/config.json", "w"), indent=4, sort_keys=True)
 
     def set_params(self, cfg):
         self.reward_params = cfg["reward_params"]
         self.frames_num = 0
         self.visualize = cfg["visualize"]
-        self.save_file_name = cfg["save_file_name"] + "_" + time.strftime("%Y%m%d-%H%M%S")
+        self.save_file_name = cfg["save_file_name"]
 
         # mpm params
         self.offset_x = cfg["offset"][0]
