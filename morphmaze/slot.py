@@ -12,8 +12,9 @@ GAP_1 = 40
 
 @ti.data_oriented
 class SLOT(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(SLOT, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(SLOT, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological Maze SLOT-v0*******************")
         # initial robot task-SLOT
         self.obs_auto_reset = False
@@ -131,7 +132,11 @@ class SLOT(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan")   
-        
+        if self.wandb_logger is not None:
+            self.wandb_logger.log({'train_locomotion': self.center_point[0]})
+            self.wandb_logger.log({'train_robot_target_distance': np.mean(np.linalg.norm(self.x_target - self.target.to_numpy(), axis=1))})
+            self.wandb_logger.log({'train_split': split})
+
         return (self.state, reward, terminated, False, info)
 
     def render(self, gui, log=False, record_id=None):
@@ -169,17 +174,12 @@ class SLOT(morphmaze):
             while GAP_1 / 128 + 0.003 - 0.001 * i >= 20 / 128:
                 self.gui.line(begin=(max(0, 81 / 128 - self.anchor[None][0]), GAP_1 / 128 + 0.003 - 0.001 * i), end=(min(1, 84.5 / 128 - self.anchor[None][0]), GAP_1 / 128 + 0.003 - 0.001 * i), radius=1.2, color=0x394C31)
                 i += 1  
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
 
     @ti.kernel

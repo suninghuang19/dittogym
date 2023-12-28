@@ -12,8 +12,9 @@ OFFSET = 6
 
 @ti.data_oriented
 class CATCH(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(CATCH, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(CATCH, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological Maze CATCH-v0*******************")
         # initial robot task-CATCH
         self.obs_auto_reset = False
@@ -123,7 +124,11 @@ class CATCH(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan")  
-        
+        if self.wandb_logger is not None:
+            self.wandb_logger.log({'train_split': split})
+            self.wandb_logger.log({'train_robot_ball_distance': -robot_ball_distance})
+            self.wandb_logger.log({'train_ball_target_distance': -ball_location_distance})
+            
         return (self.state, reward, terminated, False, info)
 
     def render(self, gui, log=False, record_id=None):
@@ -188,17 +193,12 @@ class CATCH(morphmaze):
 
             if 1e-5 < self.target[None][0] - self.anchor[None][0] < 1 - 1e-5 and 1e-5 < self.target[None][1] - self.anchor[None][1] < 1 - 1e-5:
                 self.gui.circle([self.target[None][0] - self.anchor[None][0], self.target[None][1] - self.anchor[None][1]], radius=5, color=0x7F3CFF)
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
 
     @ti.kernel

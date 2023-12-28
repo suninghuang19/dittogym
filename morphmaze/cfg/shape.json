@@ -14,7 +14,7 @@
     "obs_res_resize": 8,
     "repeat_times": 100,
     "reward_params": [23],
-    "visualize": false,
-    "save_file_name": "SHAPE_MATCH",
+    "visualize": true,
+    "save_file_name": ".",
     "target": "STAR"
 }

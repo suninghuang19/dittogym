@@ -11,7 +11,7 @@ pip install .
 
 You can run the following command to check if successfully installed:
 ```python
-python test.py
+python test_env.py
 ```
 
 

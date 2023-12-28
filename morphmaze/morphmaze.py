@@ -5,13 +5,15 @@ import json
 import time
 import numpy as np
 import taichi as ti
+from abc import ABC, abstractmethod
 
 @ti.data_oriented
-class morphmaze(gym.Env):
-    def __init__(self, cfg_path=None, action_dim=None, action_res_resize=None):
+class morphmaze(gym.Env, ABC):
+    def __init__(self, cfg_path=None, action_dim=None, action_res_resize=None, wandb_logger=None):
         print("*******************Welcome to Morphological Maze*******************")
         current_file_path = os.path.abspath(__file__)
         self.current_directory = os.path.dirname(current_file_path)
+        self.wandb_logger = wandb_logger
         cfg = json.load(open(cfg_path, "r"))
         if cfg_path is None:
             print("Please specify the config file path!")
@@ -249,6 +251,11 @@ class morphmaze(gym.Env):
             base_index[1] : base_index[1] + final_action_res,
         ] = self.action
         self.grid_actuation.from_numpy(grid_actuation.transpose(1, 2, 0))
+        # if not os.path.exists("./action"):
+        #     os.makedirs("./action")
+        # cv2.imwrite('./action/x_.png', 255 * (self.grid_actuation.to_numpy()[:, :, 0].transpose(1, 0)[::-1] + self.max_actuation) / (2 * self.max_actuation))
+        # cv2.imwrite('./action/y_.png', 255 * (self.grid_actuation.to_numpy()[:, :, 1].transpose(1, 0)[::-1] + self.max_actuation) / (2 * self.max_actuation))
+
 
     @ti.kernel
     def update_particle_actuation(self):
@@ -406,16 +413,19 @@ class morphmaze(gym.Env):
                     new_C += 4 * self.inv_dx * weight * g_v.outer_product(dpos)
                 self.v[p], self.C[p] = new_v, new_C
                 self.x[p] += self.dt * self.v[p]
-                
+    
+    @abstractmethod
     def reset(self):
-        NotImplementedError
+        pass
 
+    @abstractmethod
     def step(self, action):
-        NotImplementedError
+        pass
 
+    @abstractmethod
     def render(self, gui, log=False, record_id=None):
-        NotImplementedError
+        pass
 
-    @ti.kernel
-    def grid_operation(self):
-        NotImplementedError
+    # @abstractmethod
+    # def grid_operation(self):
+    #     pass

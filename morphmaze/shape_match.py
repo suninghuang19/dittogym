@@ -8,8 +8,9 @@ from morphmaze.morphmaze import morphmaze
 
 @ti.data_oriented
 class SHAPE_MATCH(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(SHAPE_MATCH, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)      
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(SHAPE_MATCH, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological_Maze SHAPE_MATCH-v0*******************")
         # initial robot task-SHAPE_MATCH
         self.add_circle
@@ -98,17 +99,12 @@ class SHAPE_MATCH(morphmaze):
                         radius=1.5,
                         palette=[0xFF5722, 0x7F3CFF],
                         palette_indices=self.material)
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
 
     @ti.kernel

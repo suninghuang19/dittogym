@@ -11,8 +11,9 @@ GAP = 60
 
 @ti.data_oriented
 class RUN(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(RUN, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(RUN, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological Maze RUN-v0*******************")     
         # initial robot task-RUN
         self.add_circle(0.0, 0.0, 0.18, is_object=False)
@@ -69,7 +70,8 @@ class RUN(morphmaze):
         # # location
         location_reward = 0
         x_mean = self.center_point[0]
-        location_reward = np.clip(np.sign(x_mean - self.init_location[0]) * (2 * (x_mean - self.init_location[0]))**2 + 5 * (x_mean - self.init_location[0]), a_min=-20, a_max=20)
+        location_reward = np.clip(np.sign(x_mean - self.init_location[0]) * (2 * (x_mean - self.init_location[0]))**2\
+            + 5 * (x_mean - self.init_location[0]), a_min=-20, a_max=20)
         # velocity
         velocity_reward = 0
         vx_mean = np.mean(self.v.to_numpy()[:self.robot_particles_num, 0])
@@ -77,7 +79,8 @@ class RUN(morphmaze):
         # action
         action_reward = -np.sum(np.linalg.norm(self.action, axis=(1, 2)))
         # split
-        split = np.clip(np.linalg.norm([np.std(self.x.to_numpy()[:self.robot_particles_num, 0]), np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]), a_min=0, a_max=0.2)
+        split = np.clip(np.linalg.norm([np.std(self.x.to_numpy()[:self.robot_particles_num, 0]),\
+            np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]), a_min=0, a_max=0.2)
         if split > 0.10:
             split_reward = -((20 * split) ** 2)
             terminated = True
@@ -96,6 +99,9 @@ class RUN(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan")   
+        if self.wandb_logger is not None:
+            self.wandb_logger.log({'train_locomotion': self.center_point[0]})
+            self.wandb_logger.log({'train_split': split})
 
         return (self.state, reward, terminated, False, info)
 
@@ -116,7 +122,8 @@ class RUN(morphmaze):
             elif start_point > 512:
                 while start_point > 512:
                     start_point -= 512
-            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
+            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"),\
+                cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
             image = np.concatenate([image[start_point:512, :, :], image[:start_point, :, :]], axis=0)
             gui.set_image(image)
             self.gui.line(begin=(0, 20 / 128 - 0.015), end=(1, 20 / 128 - 0.015), radius=7, color=0x647D8E)
@@ -125,17 +132,12 @@ class RUN(morphmaze):
                         radius=1.5,
                         palette=[0xFF5722, 0x7F3CFF],
                         palette_indices=self.material)
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
     
     @ti.kernel
@@ -148,9 +150,11 @@ class RUN(morphmaze):
             self.grid_v[i, j][1] += self.dt * self.gravity[None][1]
             self.grid_v[i, j] = 0.999 * self.grid_v[i, j]
             # # infinite horizon
-            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 35 - int(self.anchor[None][0] * self.n_grid) and j > GAP and self.grid_v[i, j][0] > 0:
+            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                and i < 35 - int(self.anchor[None][0] * self.n_grid) and j > GAP and self.grid_v[i, j][0] > 0:
                 self.grid_v[i, j][0] = 0
-            if i < 47 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 45 - int(self.anchor[None][0] * self.n_grid) and j > GAP and self.grid_v[i, j][0] < 0:
+            if i < 47 - int(self.anchor[None][0] * self.n_grid) + self.bound\
+                and i > 45 - int(self.anchor[None][0] * self.n_grid) and j > GAP and self.grid_v[i, j][0] < 0:
                 self.grid_v[i, j][0] = 0
             # up
             if j < self.bound * 20 and self.grid_v[i, j][1] < 0:
@@ -170,7 +174,10 @@ class RUN(morphmaze):
                             else:
                                 self.grid_v[i, j] = vit * (1 + self.coeff * lin / lit)
             # down
-            if (j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0) or (i > 32 - int(self.anchor[None][0] * self.n_grid) and i < 47 - int(self.anchor[None][0] * self.n_grid) and j > GAP - 2 and j <= GAP and self.grid_v[i, j][1] > 0):
+            if (j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0)\
+                or (i > 32 - int(self.anchor[None][0] * self.n_grid)\
+                    and i < 47 - int(self.anchor[None][0] * self.n_grid)\
+                        and j > GAP - 2 and j <= GAP and self.grid_v[i, j][1] > 0):
                 self.grid_v[i, j][1] = 0
 
 if __name__ == "__main__":

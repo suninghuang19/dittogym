@@ -10,8 +10,9 @@ OBS_ACT_CENTER_Y = 0.28
 
 @ti.data_oriented
 class OBSTACLE(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(OBSTACLE, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(OBSTACLE, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological Maze OBSTACLE-v0*******************")
         # initial robot task-OBSTACLE
         self.obs_auto_reset = False
@@ -71,15 +72,17 @@ class OBSTACLE(morphmaze):
         # # location
         location_reward = 0
         x_mean = self.center_point[0]
-        location_reward = np.clip(np.sign(x_mean - self.init_location[0]) * (2 * (x_mean - self.init_location[0]))**2 + 5 * (x_mean - self.init_location[0]), a_min=-20, a_max=20)
+        location_reward = np.clip(np.sign(x_mean - self.init_location[0]) * (2 * (x_mean - self.init_location[0]))**2\
+            + 5 * (x_mean - self.init_location[0]), a_min=-20, a_max=20)
         # velocity
         velocity_reward = 0
-        vx_mean = np.mean(self.v.to_numpy()[:, 0])
+        vx_mean = np.mean(self.v.to_numpy()[:self.robot_particles_num, 0])
         velocity_reward = np.clip(np.sign(vx_mean) * (2 * vx_mean)**2 + 5 * (vx_mean), a_min=-20, a_max=20)
         # action
         action_reward = -np.sum(np.linalg.norm(self.action, axis=(1, 2))) 
         # split
-        split = np.clip(np.linalg.norm([np.std(self.x.to_numpy()[:, 0]), np.std(self.x.to_numpy()[:, 1])]), a_min=0, a_max=0.2)
+        split = np.clip(np.linalg.norm([np.std(self.x.to_numpy()[:self.robot_particles_num, 0]),\
+            np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]), a_min=0, a_max=0.2)
         if split > 0.1:
             split_reward = -((20 * split) ** 2)
             terminated = True
@@ -98,6 +101,9 @@ class OBSTACLE(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan") 
+        if self.wandb_logger is not None:  
+            self.wandb_logger.log({'train_locomotion': self.center_point[0]})
+            self.wandb_logger.log({'train_split': split})
 
         return (self.state, reward, terminated, False, info)
 
@@ -132,17 +138,12 @@ class OBSTACLE(morphmaze):
                 radius=1.5,
                 color=0xFF5722,
             )
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
 
     def add_rectangular(self, x, y, w, h, is_object=False):

@@ -10,8 +10,9 @@ OBS_ACT_CENTER_Y = 0.28
 
 @ti.data_oriented
 class KICK(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(KICK, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(KICK, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological Maze KICK-v0*******************")
         # initial robot task-KICK
         self.add_circle(0.0, 0.0, 0.18, is_object=False)
@@ -51,11 +52,11 @@ class KICK(morphmaze):
                 self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()
-        if not np.isnan(x_numpy[:, 0]).any():
+        if not np.isnan(x_numpy[:self.robot_particles_num, 0]).any():
             self.anchor[None] = [np.mean(x_numpy[:self.robot_particles_num, 0]) - 0.3, 0.0]
         else:
             self.anchor[None] = [self.prev_location[0] - 0.3, 0.0]
-        self.robot_center_point = [np.mean(x_numpy[:self.robot_particles_num, 0]), np.mean(x_numpy[:self.robot_particles_num, 1])]
+        self.center_point = [np.mean(x_numpy[:self.robot_particles_num, 0]), np.mean(x_numpy[:self.robot_particles_num, 1])]
         self.object_center_point = [np.mean(x_numpy[self.robot_particles_num:, 0]), np.mean(x_numpy[self.robot_particles_num:, 1])]
         self.set_obs_field()
         self.update_obs(fix_y=OBS_ACT_CENTER_Y)
@@ -64,33 +65,37 @@ class KICK(morphmaze):
         # cv2.imwrite("./observation/state.png", self.state[0])
         # cv2.imwrite("./observation/vx.png", self.state[1])
         # cv2.imwrite("./observation/vy.png", self.state[2])
-        if not np.isnan(self.robot_center_point).any():
-            self.prev_location = self.robot_center_point
+        if not np.isnan(self.center_point).any():
+            self.prev_location = self.center_point
         else:
-            self.robot_center_point = self.prev_location
+            self.center_point = self.prev_location
 
         if not np.isnan(self.object_center_point).any():
-            self.prev_ball_location = self.object_center_point
+            self.prev_object_location = self.object_center_point
         else:
-            self.object_center_point = self.prev_ball_location
+            self.object_center_point = self.prev_object_location
         terminated = False
         # # location
         location_reward = 0
-        robot_x_mean = self.robot_center_point[0]
+        robot_x_mean = self.center_point[0]
         ball_x_mean = self.object_center_point[0]
-        ball_location_reward = np.clip(np.sign(ball_x_mean - self.init_object_location[0]) * (2 * (ball_x_mean - self.init_object_location[0]))**2 + 4 * (ball_x_mean - self.init_object_location[0]), a_min=-20, a_max=30)
-        robot_location_reward = np.clip(np.sign(robot_x_mean - self.init_location[0]) * (2 * (robot_x_mean - self.init_location[0]))**2 + 4 * (robot_x_mean - self.init_location[0]), a_min=-20, a_max=30)
+        ball_location_reward = np.clip(np.sign(ball_x_mean - self.init_object_location[0]) * (2 * (ball_x_mean - self.init_object_location[0]))**2\
+            + 4 * (ball_x_mean - self.init_object_location[0]), a_min=-20, a_max=30)
+        robot_location_reward = np.clip(np.sign(robot_x_mean - self.init_location[0]) * (2 * (robot_x_mean - self.init_location[0]))**2\
+            + 4 * (robot_x_mean - self.init_location[0]), a_min=-20, a_max=30)
         robot_ball_distance = -np.clip(abs(robot_x_mean - ball_x_mean), a_min=0, a_max=0.3)
         location_reward = ball_location_reward + robot_location_reward + 10 * robot_ball_distance
         # velocity
         velocity_reward = 0
         robot_vx_mean = np.mean(self.v.to_numpy()[:self.robot_particles_num, 0])
         ball_vx_mean = np.mean(self.v.to_numpy()[self.robot_particles_num:, 0])
-        velocity_reward = np.clip(np.sign(robot_vx_mean) * (2 * robot_vx_mean)**2 + 5 * robot_vx_mean, a_min=-20, a_max=20) + np.clip(np.sign(ball_vx_mean) * (2 * ball_vx_mean)**2 + 5 * ball_vx_mean, a_min=-20, a_max=20)
+        velocity_reward = np.clip(np.sign(robot_vx_mean) * (2 * robot_vx_mean)**2 + 5 * robot_vx_mean, a_min=-20, a_max=20)\
+            + np.clip(np.sign(ball_vx_mean) * (2 * ball_vx_mean)**2 + 5 * ball_vx_mean, a_min=-20, a_max=20)
         # action
         action_reward = -np.sum(np.linalg.norm(self.action, axis=(1, 2)))
         # split
-        split = np.clip(np.linalg.norm([np.std(self.x.to_numpy()[:self.robot_particles_num, 0]), np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]), a_min=0, a_max=0.2)
+        split = np.clip(np.linalg.norm([np.std(self.x.to_numpy()[:self.robot_particles_num, 0]),\
+            np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]), a_min=0, a_max=0.2)
         if split > 0.11:
             split_reward = -((20 * split) ** 2)
             terminated = True
@@ -109,7 +114,10 @@ class KICK(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan")   
-        
+        if self.wandb_logger is not None:  
+            self.wandb_logger.log({'train_locomotion': robot_x_mean})
+            self.wandb_logger.log({'train_split': split})
+            
         return (self.state, reward, terminated, False, info)
 
     def render(self, gui, log=False, record_id=None):
@@ -137,17 +145,12 @@ class KICK(morphmaze):
                         radius=1.5,
                         palette=[0xFF5722, 0x7F3CFF],
                         palette_indices=self.material)
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
             
     @ti.kernel

@@ -11,8 +11,9 @@ OBS_ACT_CENTER_Y = 0.4
 
 @ti.data_oriented
 class DIG(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(DIG, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(DIG, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological Maze DIG-v0*******************")
         # initial robot task-DIG
         self.add_circle(-0.05, 0.5, 0.14, is_object=False) 
@@ -66,11 +67,11 @@ class DIG(morphmaze):
             self.center_point = self.prev_location
         self.set_obs_field()
         self.update_obs(fix_x=OBS_ACT_CENTER_X, fix_y=OBS_ACT_CENTER_Y)
-        if not os.path.exists("./observation"):
-            os.makedirs("./observation")
-        cv2.imwrite("./observation/state.png", self.state[0])
-        cv2.imwrite("./observation/vx.png", self.state[1])
-        cv2.imwrite("./observation/vy.png", self.state[2])
+        # if not os.path.exists("./observation"):
+        #     os.makedirs("./observation")
+        # cv2.imwrite("./observation/state.png", self.state[0])
+        # cv2.imwrite("./observation/vx.png", self.state[1])
+        # cv2.imwrite("./observation/vy.png", self.state[2])
         terminated = False
         # # location
         location = np.mean(np.linalg.norm(self.x.to_numpy()[:self.robot_particles_num] - self.target[None].to_numpy(), ord=1, axis=1))
@@ -105,7 +106,9 @@ class DIG(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan")   
-        
+        if self.wandb_logger is not None:
+            self.wandb_logger.log({'train_robot_target_distance': location})
+
         return (self.state, reward, terminated, False, info)
 
     def render(self, gui, log=False, record_id=None):
@@ -143,17 +146,12 @@ class DIG(morphmaze):
                 i += 1  
             if 1e-5 < self.target[None][0] - self.anchor[None][0] < 1 - 1e-5 and 1e-5 < self.target[None][1] - self.anchor[None][1] < 1 - 1e-5:
                 self.gui.circle([self.target[None][0] - self.anchor[None][0], self.target[None][1] - self.anchor[None][1]], radius=5, color=0x7F3CFF)
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
 
     @ti.kernel

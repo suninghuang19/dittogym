@@ -11,8 +11,9 @@ OBS_ACT_CENTER_Y = 0.4
 
 @ti.data_oriented
 class GROW(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize):
-        super(GROW, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize, action_dim=action_dim)
+    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
+        super(GROW, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_dim=action_dim, wandb_logger=wandb_logger)
         print("*******************Morphological_Maze GROW-v0*******************")
         # initial robot task-GROW
         self.obs_auto_reset = False
@@ -85,7 +86,8 @@ class GROW(morphmaze):
         # split
         split = np.clip(
             np.linalg.norm(
-                [np.std(self.x.to_numpy()[:, 0]), np.std(self.x.to_numpy()[:, 1])]
+                [np.std(self.x.to_numpy()[:self.robot_particles_num, 0]),\
+                    np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]
             ),
             a_min=0,
             a_max=0.2,
@@ -111,7 +113,10 @@ class GROW(morphmaze):
         info = {}
         if np.isnan(self.state).any():
             raise ValueError("state has nan")   
-
+        if self.wandb_logger is not None:
+            self.wandb_logger.log({'train_robot_target_distance': (location_reward)**2})
+            self.wandb_logger.log({'train_split': split})
+            
         return (self.state, reward, terminated, False, info)
 
     def render(self, gui, log=False, record_id=None):
@@ -158,17 +163,12 @@ class GROW(morphmaze):
             )  
             if 1e-5 < self.target[None][0] - self.anchor[None][0] < 1 - 1e-5 and 1e-5 < self.target[None][1] - self.anchor[None][1] < 1 - 1e-5:
                 self.gui.circle([self.target[None][0] - self.anchor[None][0], self.target[None][1] - self.anchor[None][1]], radius=5, color=0xF08080)
-            if not os.path.exists(os.path.join(self.current_directory, "../results")):
-                os.makedirs(os.path.join(self.current_directory, "../results"))
-            if not os.path.exists(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id))):
-                os.makedirs(os.path.join(self.current_directory, "../results/" + self.save_file_name + "/record_" + str(self.record_id)))
+            if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
+                os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
             self.gui.show(
-                os.path.join(self.current_directory, "../results/"
-                + self.save_file_name
-                + "/record_"
-                + str(self.record_id)
-                + "/frame_%04d.png" % self.frames_num)
-            )
+                os.path.join(self.save_file_name 
+                             + "/videos/record_" + str(self.record_id)
+                             + "/frame_%04d.png" % self.frames_num))
             self.frames_num += 1
 
     def add_rectangular(self, x, y, w, h, is_object=False):
