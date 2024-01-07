@@ -1,15 +1,31 @@
 # Morphological Maze
 
-Official Gym Environment Implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***
+#### [[Project Website]](https://morphologicalmaze.github.io/) [[Paper]](./paper/Morphological_Maze_Control_Reconfigurable_Soft_Robots_with_Fine_grained_Morphology_Change.pdf)
+
+[Suning Huang<sup>1</sup>](https://suninghuang19.github.io/), [Boyuan Chen<sup>2</sup>](https://boyuan.space/), [Huazhe Xu<sup>1</sup>](http://hxu.rocks//), [Vincent Sitzmann<sup>2</sup>](https://www.vincentsitzmann.com/) <br/>
+<sup>1</sup>Tsinghua <sup>2</sup>MIT </br>
+
+![](./teaser/catch.gif)
+
+This repo is the official environment implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***. We set up a comprehensive benchmark including 8 different tasks for facilitating the research on novel highly reconfigurable robot. If you find this work helpful to your research, please cite us as:
+
+```
+@inproceedings{
+}
+```
+
+For questions about code, please create an issue on github. For questions about paper, please reach me at hsn19@mails.tsiinghua.edu.cn
 
 *****
 
-To create environment, simply run the following command in the root:
+#### To create environment, simply run the following command:
+
 ```python
-pip install .
+pip install git+https://github.com/suninghuang19/morphmaze.git
 ```
 
-You can run the following command to check if successfully installed:
+#### You can run the following command to check if successfully installed:
+
 ```python
 python test_env.py
 ```
@@ -33,14 +49,28 @@ python test_env.py
 
 **MorphMaze ENV Parameters:**
 
-|    Task     | Observation Resolution | Coarse Action Resolution (ENV-Coarse) | Fine Action Resolution (ENV-Fine) | Upsample Action Signal to Fit Final Action Field |
-| :---------: | :--------------------: | :-----------------------------------: | :-------------------------------: | :----------------------------------------------: |
-| SHAPE_MATCH |      (64, 64, 3)       |              (32, 32, 2)              |            (64, 64, 2)            |                   (64, 64, 2)                    |
-|     RUN     |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (64, 64, 2)                    |
-|    KICK     |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (64, 64, 2)                    |
-|     DIG     |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (32, 32, 2)                    |
-|    GROW     |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (64, 64, 2)                    |
-|  OBSTACLE   |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (64, 64, 2)                    |
-|    CATCH    |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (64, 64, 2)                    |
-|    SLOT     |      (64, 64, 3)       |               (8, 8, 2)               |            (16, 16, 2)            |                   (64, 64, 2)                    |
+|  Env Name  | Observation Resolution | Coarse Action Resolution (env-coarse-v0) | Fine Action Resolution (env-fine-v0) | Upsample Action Signal to Fit Final Action Field |
+| :--------: | :--------------------: | :--------------------------------------: | :----------------------------------: | :----------------------------------------------: |
+| shapematch |      (64, 64, 3)       |               (32, 32, 2)                |             (64, 64, 2)              |                   (64, 64, 2)                    |
+|    run     |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
+|    kick    |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
+|    dig     |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (32, 32, 2)                    |
+|    grow    |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
+|  obstacle  |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
+|   catch    |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
+|    slot    |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
+
+#### If you want to set up a gym environment, just run:
+
+```python
+import gym
+import taichi as ti
+import morphmaze
+
+ti.init(arch=ti.gpu)
+# init coarse env
+env = gym.make("shapematch-coarse-v0")
+# init fine env
+env = gym.make("shapematch-fine-v0")
+```
 

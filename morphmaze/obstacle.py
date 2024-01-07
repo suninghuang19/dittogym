@@ -9,14 +9,19 @@ from morphmaze.morphmaze import morphmaze
 OBS_ACT_CENTER_Y = 0.28
 
 @ti.data_oriented
-class OBSTACLE(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
-        super(OBSTACLE, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
-            action_dim=action_dim, wandb_logger=wandb_logger)
-        print("*******************Morphological Maze OBSTACLE-v0*******************")
+class obstacle(morphmaze):
+    def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
+        super(obstacle, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_res=action_res, wandb_logger=wandb_logger)
+        print("*******************Morphological Maze OBSTACLE*******************")
         # initial robot task-OBSTACLE
         self.obs_auto_reset = False
-        self.add_rectangular(0.0, 0.0, 0.16, 0.16)
+        if robot_img_path is not None:
+            self.cfg["particle_num_list"][0] = particles_num
+            self.set_params(self.cfg)
+            self.add_self_designed_robot(robot_img_path, particles_num)
+        else:
+            self.add_rectangular(0.0, 0.0, 0.16, 0.16)
         for i in range(len(self.x_list)):
             self.x_save[i] = self.x_list[i]
             self.material_save[i] = self.material_list[i]
@@ -47,8 +52,6 @@ class OBSTACLE(morphmaze):
             self.p2g()
             self.grid_operation()
             self.g2p()
-            if self.visualize and i == 0:
-                self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()
         if not np.isnan(x_numpy[:self.robot_particles_num, 0]).any():
@@ -107,9 +110,9 @@ class OBSTACLE(morphmaze):
 
         return (self.state, reward, terminated, False, info)
 
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         self.gui = gui
-        if not log:
+        if not record:
             self.visualize = False
             self.frames_num = 0
             return None
@@ -124,14 +127,16 @@ class OBSTACLE(morphmaze):
             elif start_point > 512:
                 while start_point > 512:
                     start_point -= 512
-            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
+            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR)\
+                .astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
             image = np.concatenate([image[start_point:512, :, :], image[:start_point, :, :]], axis=0)
             gui.set_image(image)
             self.gui.line(begin=(0, 20 / 128 - 0.015), end=(1, 20 / 128 - 0.015), radius=7, color=0x647D8E)
             for j in range(6):
                 i = 0
                 while (26 - j) / 128 - 0.001 * i >= 20 / 128:
-                    self.gui.line(begin=(max(0, (30 + 3 * j) / 128 - self.anchor[None][0]), (26 - j) / 128 - 0.001 * i), end=(min(1, (33 + 3 * j) / 128 - self.anchor[None][0]), (26 - j) / 128 - 0.001 * i), radius=3, color=0x394C31)
+                    self.gui.line(begin=(max(0, (30 + 3 * j) / 128 - self.anchor[None][0]), (26 - j) / 128 - 0.001 * i),\
+                        end=(min(1, (33 + 3 * j) / 128 - self.anchor[None][0]), (26 - j) / 128 - 0.001 * i), radius=3, color=0x394C31)
                     i += 1
             self.gui.circles(
                 self.x.to_numpy() - np.array([self.anchor[None][0], 0]),
@@ -140,11 +145,15 @@ class OBSTACLE(morphmaze):
             )
             if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
                 os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
-            self.gui.show(
-                os.path.join(self.save_file_name 
-                             + "/videos/record_" + str(self.record_id)
-                             + "/frame_%04d.png" % self.frames_num))
+            img_path = os.path.join(self.save_file_name 
+                                    + "/videos/record_" + str(self.record_id)
+                                    + "/frame_%04d.png" % self.frames_num)
+            self.gui.show(img_path)
             self.frames_num += 1
+            if mode == "rgb_array":
+                return cv2.imread(img_path)
+            else:
+                return None
 
     def add_rectangular(self, x, y, w, h, is_object=False):
         '''
@@ -174,13 +183,10 @@ class OBSTACLE(morphmaze):
             self.shape_field[i, j] = 0.0
             self.vx_field[i, j] = 0.0
             self.vy_field[i, j] = 0.0
-            if ((self.n_grid * self.obs_res_resize - i) <= 26 * self.obs_res_resize and (30 / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= 33 / 128) or
-                (self.n_grid * self.obs_res_resize - i) <= 25 * self.obs_res_resize and (33 / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= 36 / 128) or
-                (self.n_grid * self.obs_res_resize - i) <= 24 * self.obs_res_resize and (36 / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= 39 / 128) or
-                (self.n_grid * self.obs_res_resize - i) <= 23 * self.obs_res_resize and (39 / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= 42 / 128) or
-                (self.n_grid * self.obs_res_resize - i) <= 22 * self.obs_res_resize and (42 / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= 45 / 128) or
-                (self.n_grid * self.obs_res_resize - i) <= 21 * self.obs_res_resize and (45 / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= 48 / 128)):                
-                self.shape_field[i, j] = 1.0        
+            for k in range(6):
+                if (self.n_grid * self.obs_res_resize - i) <= (26 - k) * self.obs_res_resize\
+                    and ((30 + 3 * k) / 128 <= (j / (self.obs_res_resize * self.n_grid) + self.anchor[None][0]) <= (33 + 3 * k) / 128):            
+                    self.shape_field[i, j] = 1.0        
 
     @ti.kernel
     def grid_operation(self):
@@ -192,45 +198,20 @@ class OBSTACLE(morphmaze):
             self.grid_v[i, j][1] += self.dt * self.gravity[None][1]
             # self.grid_v[i, j] = 0.999 * self.grid_v[i, j]
             # # infinite horizon
-            if i > 30 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 33 - int(self.anchor[None][0] * self.n_grid) and j <= 26  and self.grid_v[i, j][0] > 0:
-                self.grid_v[i, j][0] = 0
-            if i > 33 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 36 - int(self.anchor[None][0] * self.n_grid) and j <= 25  and self.grid_v[i, j][0] > 0:
-                self.grid_v[i, j][0] = 0
-            if i > 36 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 39 - int(self.anchor[None][0] * self.n_grid) and j <= 24  and self.grid_v[i, j][0] > 0:
-                self.grid_v[i, j][0] = 0
-            if i > 39 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 42 - int(self.anchor[None][0] * self.n_grid) and j <= 23  and self.grid_v[i, j][0] > 0:
-                self.grid_v[i, j][0] = 0
-            if i > 42 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 45 - int(self.anchor[None][0] * self.n_grid) and j <= 22  and self.grid_v[i, j][0] > 0:
-                self.grid_v[i, j][0] = 0
-            if i > 45 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 48 - int(self.anchor[None][0] * self.n_grid) and j <= 21  and self.grid_v[i, j][0] > 0:
-                self.grid_v[i, j][0] = 0
-            
-            if i < 33 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 30 - int(self.anchor[None][0] * self.n_grid) and j <= 26  and self.grid_v[i, j][0] < 0:
-                self.grid_v[i, j][0] = 0
-            if i < 36 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 33 - int(self.anchor[None][0] * self.n_grid) and j <= 25  and self.grid_v[i, j][0] < 0:
-                self.grid_v[i, j][0] = 0
-            if i < 39 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 36 - int(self.anchor[None][0] * self.n_grid) and j <= 24  and self.grid_v[i, j][0] < 0:
-                self.grid_v[i, j][0] = 0
-            if i < 42 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 39 - int(self.anchor[None][0] * self.n_grid) and j <= 23  and self.grid_v[i, j][0] < 0:
-                self.grid_v[i, j][0] = 0
-            if i < 45 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 42 - int(self.anchor[None][0] * self.n_grid) and j <= 22  and self.grid_v[i, j][0] < 0:
-                self.grid_v[i, j][0] = 0
-            if i < 48 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 45 - int(self.anchor[None][0] * self.n_grid) and j <= 21  and self.grid_v[i, j][0] < 0:
-                self.grid_v[i, j][0] = 0
-            
-            if 30 - int(self.anchor[None][0] * self.n_grid) <= i <= 33 - int(self.anchor[None][0] * self.n_grid) and j <= 26 and self.grid_v[i, j][1] < 0:
-                self.grid_v[i, j][1] = 0
-            if 33 - int(self.anchor[None][0] * self.n_grid) <= i <= 36 - int(self.anchor[None][0] * self.n_grid) and j <= 25 and self.grid_v[i, j][1] < 0:
-                self.grid_v[i, j][1] = 0
-            if 36 - int(self.anchor[None][0] * self.n_grid) <= i <= 39 - int(self.anchor[None][0] * self.n_grid) and j <= 24 and self.grid_v[i, j][1] < 0:
-                self.grid_v[i, j][1] = 0
-            if 39 - int(self.anchor[None][0] * self.n_grid) <= i <= 42 - int(self.anchor[None][0] * self.n_grid) and j <= 23 and self.grid_v[i, j][1] < 0:
-                self.grid_v[i, j][1] = 0
-            if 42 - int(self.anchor[None][0] * self.n_grid) <= i <= 45 - int(self.anchor[None][0] * self.n_grid) and j <= 22 and self.grid_v[i, j][1] < 0:
-                self.grid_v[i, j][1] = 0
-            if 45 - int(self.anchor[None][0] * self.n_grid) <= i <= 48 - int(self.anchor[None][0] * self.n_grid) and j <= 21 and self.grid_v[i, j][1] < 0:
-                self.grid_v[i, j][1] = 0
+            for k in range(6):
+                if i > (30 + 3 * k) - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                    and i < (33 + 3 * k) - int(self.anchor[None][0] * self.n_grid)\
+                        and j <= (26 - k)  and self.grid_v[i, j][0] > 0:
+                    self.grid_v[i, j][0] = 0 
 
+                if i < (33 + 3 * k) - int(self.anchor[None][0] * self.n_grid)\
+                    + self.bound and i > (30 + 3 * k) - int(self.anchor[None][0] * self.n_grid)\
+                        and j <= (26 - k)  and self.grid_v[i, j][0] < 0:
+                    self.grid_v[i, j][0] = 0        
+
+                if (30 + 3 * k) - int(self.anchor[None][0] * self.n_grid) <= i <= (33 + 3 * k) - int(self.anchor[None][0] * self.n_grid)\
+                    and j <= (26 - k) and self.grid_v[i, j][1] < 0:
+                    self.grid_v[i, j][1] = 0
             # up
             if j < self.bound * 20 and self.grid_v[i, j][1] < 0:
                 self.grid_v[i, j] = [0, 0]
@@ -251,12 +232,3 @@ class OBSTACLE(morphmaze):
             # down
             if j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0:
                 self.grid_v[i, j][1] = 0
-
-if __name__ == "__main__":
-    ti.init(arch=ti.gpu)
-    gui = ti.GUI("Taichi MPM Morphological Maze", res=512, background_color=0x112F41, show_gui=False)
-    env = OBSTACLE("./cfg/obstacle.json")
-    env.reset()
-    env.render(gui, log=True, record_id=0)
-    while True:
-        env.step(2 * np.random.rand(env.action_space.shape[0]) - 1)

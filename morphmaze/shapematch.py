@@ -7,15 +7,21 @@ import taichi as ti
 from morphmaze.morphmaze import morphmaze
 
 @ti.data_oriented
-class SHAPE_MATCH(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
-        super(SHAPE_MATCH, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
-            action_dim=action_dim, wandb_logger=wandb_logger)
-        print("*******************Morphological_Maze SHAPE_MATCH-v0*******************")
+class shapematch(morphmaze):
+    def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
+        super(shapematch, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_res=action_res, wandb_logger=wandb_logger)
+        print("*******************Morphological_Maze SHAPE_MATCH*******************")
         # initial robot task-SHAPE_MATCH
-        self.add_circle
-        self.add_circle(0.0, 0.0, 0.17, is_object=False)
-        self.target_robot = cv2.imread(os.path.join(self.current_directory, "./target_for_shape_match/{}.jpg".format(self.cfg["target"])), cv2.IMREAD_GRAYSCALE).astype(np.int32)
+        if robot_img_path is not None:
+            self.cfg["particle_num_list"][0] = particles_num
+            self.set_params(self.cfg)
+            self.add_self_designed_robot(robot_img_path, particles_num)
+        else:
+            self.add_circle(0.0, 0.0, 0.17, is_object=False)
+        print("n_particles: ", self.n_particles, "action_space: ", self.action_space.shape)
+        self.target_robot = cv2.imread(os.path.join(self.current_directory,\
+            "./target_for_shape_match/{}.jpg".format(self.cfg["target"])), cv2.IMREAD_GRAYSCALE).astype(np.int32)
         self.target_robot[self.target_robot < 125] = 0
         self.target_robot[self.target_robot >= 125] = 255
         for i in range(len(self.x_list)):
@@ -46,11 +52,10 @@ class SHAPE_MATCH(morphmaze):
             self.p2g()
             self.grid_operation()
             self.g2p()
-            if self.visualize and i == 0:
-                self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()
-        self.center_point = [np.mean(x_numpy[:self.robot_particles_num, 0]), np.mean(x_numpy[:self.robot_particles_num, 1])]
+        self.center_point = [np.mean(x_numpy[:self.robot_particles_num, 0]),\
+            np.mean(x_numpy[:self.robot_particles_num, 1])]
         self.set_obs_field()
         self.update_obs()
         # if not os.path.exists("./observation"):
@@ -74,9 +79,9 @@ class SHAPE_MATCH(morphmaze):
         
         return (self.state, reward, terminated, False, info)
 
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         self.gui = gui
-        if not log:
+        if not record:
             self.visualize = False
             self.frames_num = 0
             return None
@@ -91,7 +96,8 @@ class SHAPE_MATCH(morphmaze):
             elif start_point > 512:
                 while start_point > 512:
                     start_point -= 512
-            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
+            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR)\
+                .astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
             image = np.concatenate([image[start_point:512, :, :], image[:start_point, :, :]], axis=0)
             gui.set_image(image)
             self.gui.circles(
@@ -101,11 +107,15 @@ class SHAPE_MATCH(morphmaze):
                         palette_indices=self.material)
             if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
                 os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
-            self.gui.show(
-                os.path.join(self.save_file_name 
-                             + "/videos/record_" + str(self.record_id)
-                             + "/frame_%04d.png" % self.frames_num))
+            img_path = os.path.join(self.save_file_name 
+                                    + "/videos/record_" + str(self.record_id)
+                                    + "/frame_%04d.png" % self.frames_num)
+            self.gui.show(img_path)
             self.frames_num += 1
+            if mode == "rgb_array":
+                return cv2.imread(img_path)
+            else:
+                return None
 
     @ti.kernel
     def grid_operation(self):
@@ -137,12 +147,3 @@ class SHAPE_MATCH(morphmaze):
             # down
             if j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0:
                 self.grid_v[i, j][1] = 0
-
-if __name__ == "__main__":
-    ti.init(arch=ti.gpu)
-    gui = ti.GUI("Taichi MPM Morphological Maze", res=512, background_color=0x112F41, show_gui=False)
-    env = SHAPE_MATCH("./cfg/shape_match.json")
-    env.reset()
-    env.render(gui, log=True, record_id=0)
-    while True:
-        env.step(2 * np.random.rand(env.action_space.shape[0]) - 1)

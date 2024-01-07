@@ -10,13 +10,18 @@ OBS_ACT_CENTER_Y = 0.28
 GAP = 60
 
 @ti.data_oriented
-class RUN(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
-        super(RUN, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
-            action_dim=action_dim, wandb_logger=wandb_logger)
-        print("*******************Morphological Maze RUN-v0*******************")     
+class run(morphmaze):
+    def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
+        super(run, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_res=action_res, wandb_logger=wandb_logger)
+        print("*******************Morphological Maze RUN*******************")     
         # initial robot task-RUN
-        self.add_circle(0.0, 0.0, 0.18, is_object=False)
+        if robot_img_path is not None:
+            self.cfg["particle_num_list"][0] = particles_num
+            self.set_params(self.cfg)
+            self.add_self_designed_robot(robot_img_path, particles_num)
+        else:
+            self.add_circle(0.0, 0.0, 0.18, is_object=False)
         for i in range(len(self.x_list)):
             self.x_save[i] = self.x_list[i]
             self.material_save[i] = self.material_list[i]
@@ -46,8 +51,6 @@ class RUN(morphmaze):
             self.p2g()
             self.grid_operation()
             self.g2p()
-            if self.visualize and i == 0:
-                self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()
         if not np.isnan(x_numpy[:self.robot_particles_num, 0]).any():
@@ -105,9 +108,9 @@ class RUN(morphmaze):
 
         return (self.state, reward, terminated, False, info)
 
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         self.gui = gui
-        if not log:
+        if not record:
             self.visualize = False
             self.frames_num = 0
             return None
@@ -134,11 +137,15 @@ class RUN(morphmaze):
                         palette_indices=self.material)
             if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
                 os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
-            self.gui.show(
-                os.path.join(self.save_file_name 
-                             + "/videos/record_" + str(self.record_id)
-                             + "/frame_%04d.png" % self.frames_num))
+            img_path = os.path.join(self.save_file_name 
+                                    + "/videos/record_" + str(self.record_id)
+                                    + "/frame_%04d.png" % self.frames_num)
+            self.gui.show(img_path)
             self.frames_num += 1
+            if mode == "rgb_array":
+                return cv2.imread(img_path)
+            else:
+                return None
     
     @ti.kernel
     def grid_operation(self):
@@ -179,12 +186,3 @@ class RUN(morphmaze):
                     and i < 47 - int(self.anchor[None][0] * self.n_grid)\
                         and j > GAP - 2 and j <= GAP and self.grid_v[i, j][1] > 0):
                 self.grid_v[i, j][1] = 0
-
-if __name__ == "__main__":
-    ti.init(arch=ti.gpu)
-    gui = ti.GUI("Taichi MPM Morphological Maze", res=512, background_color=0x112F41, show_gui=False)
-    env = RUN("./cfg/run.json")
-    env.reset()
-    env.render(gui, log=True, record_id=0)
-    while True:
-        env.step(2 * np.random.rand(env.action_space.shape[0]) - 1)

@@ -10,13 +10,18 @@ OBS_ACT_CENTER_X = 0.5
 OBS_ACT_CENTER_Y = 0.4
 
 @ti.data_oriented
-class DIG(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
-        super(DIG, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
-            action_dim=action_dim, wandb_logger=wandb_logger)
-        print("*******************Morphological Maze DIG-v0*******************")
+class dig(morphmaze):
+    def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
+        super(dig, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_res=action_res, wandb_logger=wandb_logger)
+        print("*******************Morphological Maze DIG*******************")
         # initial robot task-DIG
-        self.add_circle(-0.05, 0.5, 0.14, is_object=False) 
+        if robot_img_path is not None:
+            self.cfg["particle_num_list"][0] = particles_num
+            self.set_params(self.cfg)
+            self.add_self_designed_robot(robot_img_path, particles_num)
+        else:
+            self.add_circle(-0.05, 0.5, 0.14, is_object=False) 
         self.add_dust(-0.25, 0.0, 0.5, 0.33)
         self.target = ti.Vector.field(2, dtype=float, shape=())
         self.target[None] = [0.2, 0.17]
@@ -55,8 +60,6 @@ class DIG(morphmaze):
             self.p2g()
             self.grid_operation()
             self.g2p()
-            if self.visualize and i == 0:
-                self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()
         self.anchor[None] = [-0.5, 0.0]
@@ -74,18 +77,21 @@ class DIG(morphmaze):
         # cv2.imwrite("./observation/vy.png", self.state[2])
         terminated = False
         # # location
-        location = np.mean(np.linalg.norm(self.x.to_numpy()[:self.robot_particles_num] - self.target[None].to_numpy(), ord=1, axis=1))
+        location = np.mean(np.linalg.norm(self.x.to_numpy()[:self.robot_particles_num]\
+            - self.target[None].to_numpy(), ord=1, axis=1))
         location_reward = -np.sqrt(location)
         # velocity
         vx_mean = np.mean(self.v.to_numpy()[:self.robot_particles_num, 0]) 
         vy_mean = - np.mean(self.v.to_numpy()[:self.robot_particles_num, 1])
-        velocity_reward = np.sign(vx_mean) * np.clip((2 * vx_mean)**2 + 5 * abs(vx_mean), a_min=-20, a_max=20) + np.sign(vy_mean) * np.clip((2 * vy_mean)**2 + 5 * abs(vy_mean), a_min=-20, a_max=20)
+        velocity_reward = np.sign(vx_mean) * np.clip((2 * vx_mean)**2 + 5 * abs(vx_mean), a_min=-20, a_max=20)\
+            + np.sign(vy_mean) * np.clip((2 * vy_mean)**2 + 5 * abs(vy_mean), a_min=-20, a_max=20)
         # action
         action_reward = -np.sum(np.linalg.norm(self.action, axis=(1, 2)))
         # split
         split = np.clip(
             np.linalg.norm(
-                [np.std(self.x.to_numpy()[:self.robot_particles_num, 0]), np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]
+                [np.std(self.x.to_numpy()[:self.robot_particles_num, 0]),\
+                    np.std(self.x.to_numpy()[:self.robot_particles_num, 1])]
             ),
             a_min=0,
             a_max=0.2,
@@ -111,9 +117,9 @@ class DIG(morphmaze):
 
         return (self.state, reward, terminated, False, info)
 
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         self.gui = gui
-        if not log:
+        if not record:
             self.visualize = False
             self.frames_num = 0
             return None
@@ -128,7 +134,8 @@ class DIG(morphmaze):
             elif start_point > 512:
                 while start_point > 512:
                     start_point -= 512
-            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
+            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR)\
+                .astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
             image = np.concatenate([image[start_point:512, :, :], image[:start_point, :, :]], axis=0)
             gui.set_image(image)
             self.gui.line(begin=(0, 20 / 128 - 0.015), end=(1, 20 / 128 - 0.015), radius=7, color=0x647D8E)
@@ -138,21 +145,29 @@ class DIG(morphmaze):
                         palette_indices=self.material)
             i = 0
             while 33 / 128 + 0.001 * i <= 35.8 / 128:
-                self.gui.line(begin=(max(0, 33 / 128 + 0.001 * i - self.anchor[None][0]), 20 / 128), end=(min(1, 33 / 128 + 0.001 * i - self.anchor[None][0]), 128 / 128), radius=3.5, color=0x394C31)
+                self.gui.line(begin=(max(0, 33 / 128 + 0.001 * i - self.anchor[None][0]), 20 / 128),\
+                    end=(min(1, 33 / 128 + 0.001 * i - self.anchor[None][0]), 128 / 128), radius=3.5, color=0x394C31)
                 i += 1  
             i = 0
             while -35 / 128 + 0.001 * i <= -32.2 / 128:
-                self.gui.line(begin=(max(0, -35 / 128 + 0.001 * i - self.anchor[None][0]), 20 / 128), end=(min(1, -35 / 128 + 0.001 * i - self.anchor[None][0]), 128 / 128), radius=3.5, color=0x394C31)
+                self.gui.line(begin=(max(0, -35 / 128 + 0.001 * i - self.anchor[None][0]), 20 / 128),\
+                    end=(min(1, -35 / 128 + 0.001 * i - self.anchor[None][0]), 128 / 128), radius=3.5, color=0x394C31)
                 i += 1  
-            if 1e-5 < self.target[None][0] - self.anchor[None][0] < 1 - 1e-5 and 1e-5 < self.target[None][1] - self.anchor[None][1] < 1 - 1e-5:
-                self.gui.circle([self.target[None][0] - self.anchor[None][0], self.target[None][1] - self.anchor[None][1]], radius=5, color=0x7F3CFF)
+            if 1e-5 < self.target[None][0] - self.anchor[None][0] < 1 - 1e-5\
+                and 1e-5 < self.target[None][1] - self.anchor[None][1] < 1 - 1e-5:
+                self.gui.circle([self.target[None][0] - self.anchor[None][0],\
+                    self.target[None][1] - self.anchor[None][1]], radius=5, color=0x7F3CFF)
             if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
                 os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
-            self.gui.show(
-                os.path.join(self.save_file_name 
-                             + "/videos/record_" + str(self.record_id)
-                             + "/frame_%04d.png" % self.frames_num))
+            img_path = os.path.join(self.save_file_name 
+                                    + "/videos/record_" + str(self.record_id)
+                                    + "/frame_%04d.png" % self.frames_num)
+            self.gui.show(img_path)
             self.frames_num += 1
+            if mode == "rgb_array":
+                return cv2.imread(img_path)
+            else:
+                return None
 
     @ti.kernel
     def set_obs_field(self):
@@ -160,8 +175,10 @@ class DIG(morphmaze):
             self.shape_field[i, j] = 0.0
             self.vx_field[i, j] = 0.0
             self.vy_field[i, j] = 0.0
-            if (self.target[None][0] - self.anchor[None][0]) * 8 * self.n_grid - 10 < j < (self.target[None][0] - self.anchor[None][0]) * 8 * self.n_grid + 10 and\
-                (1 - (self.target[None][1] - self.anchor[None][1])) * 8 * self.n_grid - 10 < i < (1 - (self.target[None][1] - self.anchor[None][1])) * 8 * self.n_grid + 10:
+            if (self.target[None][0] - self.anchor[None][0]) * 8 * self.n_grid - 10 < j\
+                < (self.target[None][0] - self.anchor[None][0]) * 8 * self.n_grid + 10 and\
+                (1 - (self.target[None][1] - self.anchor[None][1])) * 8 * self.n_grid - 10 < i\
+                    < (1 - (self.target[None][1] - self.anchor[None][1])) * 8 * self.n_grid + 10:
                 self.shape_field[i, j] = 1.0
         for p in range(self.n_particles):
             if (
@@ -284,9 +301,11 @@ class DIG(morphmaze):
             self.grid_v[i, j][1] += self.dt * self.gravity[None][1]
             # self.grid_v[i, j] = 0.999 * self.grid_v[i, j]
             # # infinite horizon
-            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 35 - int(self.anchor[None][0] * self.n_grid) and self.grid_v[i, j][0] > 0:
+            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound and\
+                i < 35 - int(self.anchor[None][0] * self.n_grid) and self.grid_v[i, j][0] > 0:
                 self.grid_v[i, j][0] = 0
-            if i < -32 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > -35 - int(self.anchor[None][0] * self.n_grid) and self.grid_v[i, j][0] < 0:
+            if i < -32 - int(self.anchor[None][0] * self.n_grid) + self.bound and\
+                i > -35 - int(self.anchor[None][0] * self.n_grid) and self.grid_v[i, j][0] < 0:
                 self.grid_v[i, j][0] = 0
             # up
             if j < self.bound * 20 and self.grid_v[i, j][1] < 0:
@@ -294,12 +313,3 @@ class DIG(morphmaze):
             # down
             if j > self.n_grid - 3 and self.grid_v[i, j][1] > 0:
                 self.grid_v[i, j][1] = 0
-
-if __name__ == "__main__":
-    ti.init(arch=ti.gpu)
-    gui = ti.GUI("Taichi MPM Morphological Maze", res=512, background_color=0x112F41, show_gui=False)
-    env = DIG("./cfg/dig.json")
-    env.reset()
-    env.render(gui, log=True, record_id=0)
-    while True:
-        env.step(2 * np.random.rand(env.action_space.shape[0]) - 1)

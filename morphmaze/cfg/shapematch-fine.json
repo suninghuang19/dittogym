@@ -8,13 +8,13 @@
     "gravity": [0, -0],
     "offset": [0.4, 0.5],
     "max_actuation": 82,
-    "action_dim": 8192,
+    "action_res": 64,
     "action_res_resize": 1,
     "obs_res": 64,
     "obs_res_resize": 8,
     "repeat_times": 100,
     "reward_params": [23],
-    "visualize": false,
-    "save_file_name": "SHAPE_MATCH",
+    "visualize": true,
+    "save_file_name": ".",
     "target": "STAR"
 }

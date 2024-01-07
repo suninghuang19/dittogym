@@ -11,14 +11,19 @@ GAP = 36
 GAP_1 = 40
 
 @ti.data_oriented
-class SLOT(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
-        super(SLOT, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
-            action_dim=action_dim, wandb_logger=wandb_logger)
-        print("*******************Morphological Maze SLOT-v0*******************")
+class slot(morphmaze):
+    def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
+        super(slot, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_res=action_res, wandb_logger=wandb_logger)
+        print("*******************Morphological Maze SLOT*******************")
         # initial robot task-SLOT
         self.obs_auto_reset = False
-        self.add_circle(0.0, 0.0, 0.16, is_object=False)
+        if robot_img_path is not None:
+            self.cfg["particle_num_list"][0] = particles_num
+            self.set_params(self.cfg)
+            self.add_self_designed_robot(robot_img_path, particles_num)
+        else:
+            self.add_circle(0.0, 0.0, 0.16, is_object=False)
         self.add_rectangular(0.52, 0.162, 0.13, 0.03, is_object=True)
         self.target = ti.Vector.field(2, dtype=float, shape=())
         for i in range(len(self.x_list)):
@@ -67,8 +72,6 @@ class SLOT(morphmaze):
             self.p2g()
             self.grid_operation()
             self.g2p()
-            if self.visualize and i == 0:
-                self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()[:self.robot_particles_num]
         object_numpy = self.x.to_numpy()[self.robot_particles_num:]
@@ -134,14 +137,15 @@ class SLOT(morphmaze):
             raise ValueError("state has nan")   
         if self.wandb_logger is not None:
             self.wandb_logger.log({'train_locomotion': self.center_point[0]})
-            self.wandb_logger.log({'train_robot_target_distance': np.mean(np.linalg.norm(self.x_target - self.target.to_numpy(), axis=1))})
+            self.wandb_logger.log({'train_robot_target_distance':\
+                np.mean(np.linalg.norm(self.x_target - self.target.to_numpy(), axis=1))})
             self.wandb_logger.log({'train_split': split})
 
         return (self.state, reward, terminated, False, info)
 
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         self.gui = gui
-        if not log:
+        if not record:
             self.visualize = False
             self.frames_num = 0
             return None
@@ -156,7 +160,8 @@ class SLOT(morphmaze):
             elif start_point > 512:
                 while start_point > 512:
                     start_point -= 512
-            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
+            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"),\
+                cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
             image = np.concatenate([image[start_point:512, :, :], image[:start_point, :, :]], axis=0)
             gui.set_image(image)
             self.gui.circles(self.x.to_numpy() - self.anchor[None].to_numpy(),
@@ -164,35 +169,48 @@ class SLOT(morphmaze):
                         palette=[0xFF5722, 0xe17c2d],
                         palette_indices=self.material)
             self.gui.line(begin=(0, 20 / 128 - 0.015), end=(1, 20 / 128 - 0.015), radius=7, color=0x647D8E)
-            self.gui.line(begin=(40 / 128 - self.anchor[None][0], GAP_1 / 128), end=(69 / 128 - self.anchor[None][0], GAP_1 / 128), radius=3.5, color=0x394C31)
+            self.gui.line(begin=(40 / 128 - self.anchor[None][0], GAP_1 / 128),\
+                end=(69 / 128 - self.anchor[None][0], GAP_1 / 128), radius=3.5, color=0x394C31)
             # horizon
             i = 0
             while (GAP + 1) / 128 + 0.001 * i <= 1:
-                self.gui.line(begin=(max(0, 33 / 128 - self.anchor[None][0]), GAP / 128 + 0.001 * i), end=(min(1, 44 / 128 - self.anchor[None][0]), GAP / 128 + 0.001 * i), radius=1.2, color=0x394C31)
+                self.gui.line(begin=(max(0, 33 / 128 - self.anchor[None][0]), GAP / 128 + 0.001 * i),\
+                    end=(min(1, 44 / 128 - self.anchor[None][0]), GAP / 128 + 0.001 * i), radius=1.2, color=0x394C31)
                 i += 1
             i = 0
             while GAP_1 / 128 + 0.003 - 0.001 * i >= 20 / 128:
-                self.gui.line(begin=(max(0, 81 / 128 - self.anchor[None][0]), GAP_1 / 128 + 0.003 - 0.001 * i), end=(min(1, 84.5 / 128 - self.anchor[None][0]), GAP_1 / 128 + 0.003 - 0.001 * i), radius=1.2, color=0x394C31)
+                self.gui.line(begin=(max(0, 81 / 128 - self.anchor[None][0]), GAP_1 / 128 + 0.003 - 0.001 * i),\
+                    end=(min(1, 84.5 / 128 - self.anchor[None][0]), GAP_1 / 128 + 0.003 - 0.001 * i), radius=1.2, color=0x394C31)
                 i += 1  
             if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
                 os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
-            self.gui.show(
-                os.path.join(self.save_file_name 
-                             + "/videos/record_" + str(self.record_id)
-                             + "/frame_%04d.png" % self.frames_num))
+            img_path = os.path.join(self.save_file_name 
+                                    + "/videos/record_" + str(self.record_id)
+                                    + "/frame_%04d.png" % self.frames_num)
+            self.gui.show(img_path)
             self.frames_num += 1
-
+            if mode == "rgb_array":
+                return cv2.imread(img_path)
+            else:
+                return None
+            
     @ti.kernel
     def set_bg_env(self):
         for i, j in self.shape_field:
             self.shape_field[i, j] = 0.0
             self.vx_field[i, j] = 0.0
             self.vy_field[i, j] = 0.0
-            if (self.n_grid * 8 - i) / (self.n_grid * 8) > GAP / 128 and (j / (self.n_grid * 8) + self.anchor[None][0] > 32 / 128 and j / (self.n_grid * 8) + self.anchor[None][0] < 45 / 128):
+            if (self.n_grid * 8 - i) / (self.n_grid * 8) > GAP / 128\
+                and (j / (self.n_grid * 8) + self.anchor[None][0] > 32 / 128\
+                    and j / (self.n_grid * 8) + self.anchor[None][0] < 45 / 128):
                 self.shape_field[i, j] = 1
-            if (self.n_grid * 8 - i) / (self.n_grid * 8) <= GAP_1 / 128 and (j / (self.n_grid * 8) + self.anchor[None][0] >= 81 / 128 and j / (self.n_grid * 8) + self.anchor[None][0] <= 85 / 128):
+            if (self.n_grid * 8 - i) / (self.n_grid * 8) <= GAP_1 / 128\
+                and (j / (self.n_grid * 8) + self.anchor[None][0] >= 81 / 128\
+                    and j / (self.n_grid * 8) + self.anchor[None][0] <= 85 / 128):
                 self.shape_field[i, j] = 1
-            if (GAP_1 - 2) / 128 <= (self.n_grid * 8 - i) / (self.n_grid * 8) <= GAP_1 / 128 and (j / (self.n_grid * 8) + self.anchor[None][0] > 45 / 128 and j / (self.n_grid * 8) + self.anchor[None][0] < 70 / 128):
+            if (GAP_1 - 2) / 128 <= (self.n_grid * 8 - i) / (self.n_grid * 8) <= GAP_1 / 128\
+                and (j / (self.n_grid * 8) + self.anchor[None][0] > 45 / 128\
+                    and j / (self.n_grid * 8) + self.anchor[None][0] < 70 / 128):
                 self.shape_field[i, j] = 1
 
     @ti.kernel
@@ -205,25 +223,41 @@ class SLOT(morphmaze):
             self.grid_v[i, j][1] += self.dt * self.gravity[None][1]
             # self.grid_v[i, j] = 0.999 * self.grid_v[i, j]
             # # infinite horizon
-            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 35 - int(self.anchor[None][0] * self.n_grid) and j > GAP - 1 and self.grid_v[i, j][0] > 0:
+            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                and i < 35 - int(self.anchor[None][0] * self.n_grid)\
+                    and j > GAP - 1 and self.grid_v[i, j][0] > 0:
                 self.grid_v[i, j][0] = 0
-            if i < 45 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 43 - int(self.anchor[None][0] * self.n_grid) and j > GAP - 1 and self.grid_v[i, j][0] < 0:
+            if i < 45 - int(self.anchor[None][0] * self.n_grid) + self.bound\
+                and i > 43 - int(self.anchor[None][0] * self.n_grid)\
+                    and j > GAP - 1 and self.grid_v[i, j][0] < 0:
                 self.grid_v[i, j][0] = 0
 
-            if i > 45 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 47 - int(self.anchor[None][0] * self.n_grid) and j == GAP_1 and self.grid_v[i, j][0] > 0:
+            if i > 45 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                and i < 47 - int(self.anchor[None][0] * self.n_grid)\
+                    and j == GAP_1 and self.grid_v[i, j][0] > 0:
                 self.grid_v[i, j][0] = 0
-            if i < 70 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 68 - int(self.anchor[None][0] * self.n_grid) and j == GAP_1 and self.grid_v[i, j][0] < 0:
+            if i < 70 - int(self.anchor[None][0] * self.n_grid) + self.bound\
+                and i > 68 - int(self.anchor[None][0] * self.n_grid)\
+                    and j == GAP_1 and self.grid_v[i, j][0] < 0:
                 self.grid_v[i, j][0] = 0
 
-            if i > 81 - int(self.anchor[None][0] * self.n_grid) - self.bound and i < 83 - int(self.anchor[None][0] * self.n_grid) and j < GAP_1 and self.grid_v[i, j][0] > 0:
+            if i > 81 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                and i < 83 - int(self.anchor[None][0] * self.n_grid)\
+                    and j < GAP_1 and self.grid_v[i, j][0] > 0:
                 self.grid_v[i, j][0] = 0
-            if i < 85 - int(self.anchor[None][0] * self.n_grid) + self.bound and i > 83 - int(self.anchor[None][0] * self.n_grid) and j < GAP_1 and self.grid_v[i, j][0] < 0:
+            if i < 85 - int(self.anchor[None][0] * self.n_grid) + self.bound\
+                and i > 83 - int(self.anchor[None][0] * self.n_grid)\
+                    and j < GAP_1 and self.grid_v[i, j][0] < 0:
                 self.grid_v[i, j][0] = 0
 
             # up
             if (j < self.bound * 20 and self.grid_v[i, j][1] < 0) or\
-                 (i > 45 - int(self.anchor[None][0] * self.n_grid) - self.bound and i <= 70 - int(self.anchor[None][0] * self.n_grid) and GAP_1 == j and self.grid_v[i, j][1] < 0) or\
-                 (i > 82 - int(self.anchor[None][0] * self.n_grid) - self.bound and i <= 85 - int(self.anchor[None][0] * self.n_grid) and GAP_1 == j and self.grid_v[i, j][1] < 0):
+                 (i > 45 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                     and i <= 70 - int(self.anchor[None][0] * self.n_grid)\
+                         and GAP_1 == j and self.grid_v[i, j][1] < 0) or\
+                 (i > 82 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                     and i <= 85 - int(self.anchor[None][0] * self.n_grid)\
+                         and GAP_1 == j and self.grid_v[i, j][1] < 0):
                 self.grid_v[i, j] = [0, 0]
                 normal = ti.Vector([0.0, 1.0])
                 lsq = (normal**2).sum()
@@ -240,20 +274,15 @@ class SLOT(morphmaze):
                             else:
                                 self.grid_v[i, j] = vit * (1 + self.coeff * lin / lit)
             # down
-            if (j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0) or\
-                (i > 31 - int(self.anchor[None][0] * self.n_grid) and i < 46 - int(self.anchor[None][0] * self.n_grid) and j >= GAP - 1 and j <= GAP and self.grid_v[i, j][1] > 0) or\
-                (i >= 45 - int(self.anchor[None][0] * self.n_grid) and i <= 70 - int(self.anchor[None][0] * self.n_grid) and j == GAP_1 and self.grid_v[i, j][1] > 0):
+            if (j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0)\
+                or (i > 31 - int(self.anchor[None][0] * self.n_grid)\
+                    and i < 46 - int(self.anchor[None][0] * self.n_grid)\
+                        and j >= GAP - 1 and j <= GAP and self.grid_v[i, j][1] > 0)\
+                            or (i >= 45 - int(self.anchor[None][0] * self.n_grid)\
+                                and i <= 70 - int(self.anchor[None][0] * self.n_grid)\
+                                    and j == GAP_1 and self.grid_v[i, j][1] > 0):
                     self.grid_v[i, j][1] = 0
 
             if i == 0 or i == self.n_grid - 1 or j == 0 or j == self.n_grid - 1:
                 self.grid_v[i, j] = [0, 0]
-
-if __name__ == "__main__":
-    ti.init(arch=ti.gpu)
-    gui = ti.GUI("Taichi MPM Morphological Maze", res=512, background_color=0x112F41, show_gui=False)
-    env = SLOT("./cfg/slot.json")
-    env.reset()
-    env.render(gui, log=True, record_id=0)
-    while True:
-        env.step(2 * np.random.rand(env.action_space.shape[0]) - 1)
     

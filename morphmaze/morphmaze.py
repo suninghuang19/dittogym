@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 
 @ti.data_oriented
 class morphmaze(gym.Env, ABC):
-    def __init__(self, cfg_path=None, action_dim=None, action_res_resize=None, wandb_logger=None):
+    def __init__(self, cfg_path=None, action_res=None, action_res_resize=None, wandb_logger=None):
         print("*******************Welcome to Morphological Maze*******************")
         current_file_path = os.path.abspath(__file__)
         self.current_directory = os.path.dirname(current_file_path)
@@ -18,8 +18,8 @@ class morphmaze(gym.Env, ABC):
         if cfg_path is None:
             print("Please specify the config file path!")
             return
-        if action_dim is not None:
-            cfg["action_dim"] = action_dim
+        if action_res is not None:
+            cfg["action_dim"] = 2 * action_res**2
         if action_res_resize is not None:
             cfg["action_res_resize"] = action_res_resize
         self.set_params(cfg)
@@ -75,11 +75,11 @@ class morphmaze(gym.Env, ABC):
         # action space (ax, ay)
         self.max_actuation = cfg["max_actuation"]
         self.action_res_resize = cfg["action_res_resize"]
-        self.action = np.zeros(cfg["action_dim"])
+        action_dim = 2 * cfg["action_res"]**2
+        self.action = np.zeros(action_dim)
         self.grid_actuation = ti.Vector.field(2, dtype=float, shape=(self.n_grid, self.n_grid))
         self.particle_actuation = ti.Vector.field(2, dtype=float, shape=self.n_particles)
-        self.action_space = gym.spaces.box.Box(low=-1, high=1, shape=(cfg["action_dim"],), dtype=np.float32)
-        print("n_particles: ", self.n_particles, "action_space: ", self.action_space.shape)
+        self.action_space = gym.spaces.box.Box(low=-1, high=1, shape=(action_dim,), dtype=np.float32)
 
         # observation space (shape, vx, vy)
         self.obs_res = cfg["obs_res"]
@@ -98,10 +98,10 @@ class morphmaze(gym.Env, ABC):
         r circle radius
         '''
         if is_object:
-            particle_num = self.object_particles_num
+            particles_num = self.object_particles_num
         else:
-            particle_num = self.robot_particles_num
-        for _ in range(particle_num):
+            particles_num = self.robot_particles_num
+        for _ in range(particles_num):
             randm_x = np.random.rand()
             randm_y = np.random.rand()
             sign_x = 1 if np.random.rand() > 0.5 else -1
@@ -122,10 +122,10 @@ class morphmaze(gym.Env, ABC):
         (w, h): width and height of the rectangular
         '''
         if is_object:
-            particle_num = self.object_particles_num
+            particles_num = self.object_particles_num
         else:
-            particle_num = self.robot_particles_num
-        for _ in range(particle_num):
+            particles_num = self.robot_particles_num
+        for _ in range(particles_num):
             randm_x = np.random.rand()
             randm_y = np.random.rand()
             sign_x = 1 if np.random.rand() > 0.5 else -1
@@ -153,6 +153,34 @@ class morphmaze(gym.Env, ABC):
             )
             self.material_list.append(1)
             self.mass_list.append(self.mass[1])
+
+    def add_self_designed_robot(self, img_path, particles_num=None):
+        '''
+        img_path: path to the robot image
+        '''
+        robot_img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+
+        if "dig" not in self.cfg["env_name"]:
+            robot_img = cv2.resize(robot_img, (128, 128))[::-1, :]
+        else:
+            robot_img = cv2.resize(robot_img, (64, 64))[::-1, :]
+        robot_img = robot_img.astype(np.int32)
+        robot_img[robot_img < 127] = 0
+        robot_img[robot_img >= 127] = 1  
+        num = 0
+        while num < particles_num:
+            randm_x = np.random.rand()
+            randm_y = np.random.rand()
+            if robot_img[int(randm_y * robot_img.shape[0]), int(randm_x * robot_img.shape[1])] == 1:
+                self.x_list.append(
+                    [
+                        robot_img.shape[0] / 512 * randm_x + self.offset_x,
+                        robot_img.shape[1] / 512 * randm_y + self.offset_y,
+                    ]
+                )
+                self.material_list.append(0)
+                self.mass_list.append(self.mass[0])
+                num += 1
 
     def central_obs(self, state, fix_x=None, fix_y=None):
         if not np.isnan(self.center_point).any():
@@ -423,9 +451,9 @@ class morphmaze(gym.Env, ABC):
         pass
 
     @abstractmethod
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         pass
 
-    # @abstractmethod
-    # def grid_operation(self):
-    #     pass
+    @abstractmethod
+    def grid_operation(self):
+        pass

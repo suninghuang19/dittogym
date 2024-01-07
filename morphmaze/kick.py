@@ -9,13 +9,18 @@ from morphmaze.morphmaze import morphmaze
 OBS_ACT_CENTER_Y = 0.28
 
 @ti.data_oriented
-class KICK(morphmaze):
-    def __init__(self, cfg_path, action_dim, action_res_resize, wandb_logger=None):
-        super(KICK, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
-            action_dim=action_dim, wandb_logger=wandb_logger)
-        print("*******************Morphological Maze KICK-v0*******************")
+class kick(morphmaze):
+    def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
+        super(kick, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
+            action_res=action_res, wandb_logger=wandb_logger)
+        print("*******************Morphological Maze KICK*******************")
         # initial robot task-KICK
-        self.add_circle(0.0, 0.0, 0.18, is_object=False)
+        if robot_img_path is not None:
+            self.cfg["particle_num_list"][0] = particles_num
+            self.set_params(self.cfg)
+            self.add_self_designed_robot(robot_img_path, particles_num)
+        else:
+            self.add_circle(0.0, 0.0, 0.18, is_object=False)
         self.add_rectangular(0.3, 0.0, 0.05, 0.05, is_object=True)
         for i in range(len(self.x_list)):
             self.x_save[i] = self.x_list[i]
@@ -48,16 +53,16 @@ class KICK(morphmaze):
             self.p2g()
             self.grid_operation()
             self.g2p()
-            if self.visualize and i == 0:
-                self.render(self.gui, log=True)
         # state (relative x, y)
         x_numpy = self.x.to_numpy()
         if not np.isnan(x_numpy[:self.robot_particles_num, 0]).any():
             self.anchor[None] = [np.mean(x_numpy[:self.robot_particles_num, 0]) - 0.3, 0.0]
         else:
             self.anchor[None] = [self.prev_location[0] - 0.3, 0.0]
-        self.center_point = [np.mean(x_numpy[:self.robot_particles_num, 0]), np.mean(x_numpy[:self.robot_particles_num, 1])]
-        self.object_center_point = [np.mean(x_numpy[self.robot_particles_num:, 0]), np.mean(x_numpy[self.robot_particles_num:, 1])]
+        self.center_point = [np.mean(x_numpy[:self.robot_particles_num, 0]),\
+            np.mean(x_numpy[:self.robot_particles_num, 1])]
+        self.object_center_point = [np.mean(x_numpy[self.robot_particles_num:, 0]),\
+            np.mean(x_numpy[self.robot_particles_num:, 1])]
         self.set_obs_field()
         self.update_obs(fix_y=OBS_ACT_CENTER_Y)
         # if not os.path.exists("./observation"):
@@ -79,9 +84,11 @@ class KICK(morphmaze):
         location_reward = 0
         robot_x_mean = self.center_point[0]
         ball_x_mean = self.object_center_point[0]
-        ball_location_reward = np.clip(np.sign(ball_x_mean - self.init_object_location[0]) * (2 * (ball_x_mean - self.init_object_location[0]))**2\
+        ball_location_reward = np.clip(np.sign(ball_x_mean - self.init_object_location[0])\
+            * (2 * (ball_x_mean - self.init_object_location[0]))**2\
             + 4 * (ball_x_mean - self.init_object_location[0]), a_min=-20, a_max=30)
-        robot_location_reward = np.clip(np.sign(robot_x_mean - self.init_location[0]) * (2 * (robot_x_mean - self.init_location[0]))**2\
+        robot_location_reward = np.clip(np.sign(robot_x_mean - self.init_location[0])\
+            * (2 * (robot_x_mean - self.init_location[0]))**2\
             + 4 * (robot_x_mean - self.init_location[0]), a_min=-20, a_max=30)
         robot_ball_distance = -np.clip(abs(robot_x_mean - ball_x_mean), a_min=0, a_max=0.3)
         location_reward = ball_location_reward + robot_location_reward + 10 * robot_ball_distance
@@ -120,9 +127,9 @@ class KICK(morphmaze):
             
         return (self.state, reward, terminated, False, info)
 
-    def render(self, gui, log=False, record_id=None):
+    def render(self, gui, record=False, record_id=None, mode=None):
         self.gui = gui
-        if not log:
+        if not record:
             self.visualize = False
             self.frames_num = 0
             return None
@@ -137,7 +144,8 @@ class KICK(morphmaze):
             elif start_point > 512:
                 while start_point > 512:
                     start_point -= 512
-            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR).astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
+            image = cv2.imread(os.path.join(self.current_directory, "./bg/bg.png"), cv2.IMREAD_COLOR)\
+                .astype(np.uint8).transpose(1, 0, 2)[:, ::-1, :]
             image = np.concatenate([image[start_point:512, :, :], image[:start_point, :, :]], axis=0)
             gui.set_image(image)
             self.gui.line(begin=(0, 20 / 128 - 0.015), end=(1, 20 / 128 - 0.015), radius=7, color=0x647D8E)
@@ -147,11 +155,15 @@ class KICK(morphmaze):
                         palette_indices=self.material)
             if not os.path.exists(self.save_file_name + "/videos/record_" + str(self.record_id)):
                 os.makedirs(self.save_file_name + "/videos/record_" + str(self.record_id))
-            self.gui.show(
-                os.path.join(self.save_file_name 
-                             + "/videos/record_" + str(self.record_id)
-                             + "/frame_%04d.png" % self.frames_num))
+            img_path = os.path.join(self.save_file_name 
+                                    + "/videos/record_" + str(self.record_id)
+                                    + "/frame_%04d.png" % self.frames_num)
+            self.gui.show(img_path)
             self.frames_num += 1
+            if mode == "rgb_array":
+                return cv2.imread(img_path)
+            else:
+                return None
             
     @ti.kernel
     def grid_operation(self):
@@ -183,12 +195,3 @@ class KICK(morphmaze):
             # down
             if j > self.n_grid - 3 and self.grid_v[i, j][1] > 0:
                 self.grid_v[i, j][1] = 0
-
-if __name__ == "__main__":
-    ti.init(arch=ti.gpu)
-    gui = ti.GUI("Taichi MPM Morphological Maze", res=512, background_color=0x112F41, show_gui=False)
-    env = KICK("./cfg/kick.json")
-    env.reset()
-    env.render(gui, log=True, record_id=0)
-    while True:
-        env.step(2 * np.random.rand(env.action_space.shape[0]) - 1)

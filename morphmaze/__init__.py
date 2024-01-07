@@ -1,139 +1,139 @@
 from gym.envs.registration import register
-from .shape_match import SHAPE_MATCH
-from .run import RUN
-from .grow import GROW
-from .kick import KICK
-from .dig import DIG
-from .obstacle import OBSTACLE
-from .catch import CATCH
-from .slot import SLOT
+from .shapematch import shapematch
+from .run import run
+from .grow import grow
+from .kick import kick
+from .dig import dig
+from .obstacle import obstacle
+from .catch import catch
+from .slot import slot
 import os
 current_file_path = os.path.abspath(__file__)
 current_directory = os.path.dirname(current_file_path)
 
 
 register(
-    id='SHAPE_MATCH_Coarse-v0',
-    entry_point='morphmaze:SHAPE_MATCH',
-    kwargs={'action_dim': 2*32**2, 'action_res_resize': 2, 'cfg_path':current_directory + '/cfg/shape_match.json'},
+    id='shapematch-coarse-v0',
+    entry_point='morphmaze:shapematch',
+    kwargs={'action_res': 32, 'action_res_resize': 2, 'cfg_path':current_directory + '/cfg/shapematch-coarse.json'},
     max_episode_steps=30,
 )
 
 register(
-    id='SHAPE_MATCH_Fine-v0',
-    entry_point='morphmaze:SHAPE_MATCH',
-    kwargs={'action_dim': 2*64**2, 'action_res_resize': 1, 'cfg_path':current_directory + '/cfg/shape_match.json'},
+    id='shapematch-fine-v0',
+    entry_point='morphmaze:shapematch',
+    kwargs={'action_res': 64, 'action_res_resize': 1, 'cfg_path':current_directory + '/cfg/shapematch-fine.json'},
     max_episode_steps=30,
 )
 
 
 
 register(
-    id='RUN_Coarse-v0',
-    entry_point='morphmaze:RUN',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/run.json'},
+    id='run-coarse-v0',
+    entry_point='morphmaze:run',
+    kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/run-coarse.json'},
     max_episode_steps=800,
 )
 
 register(
-    id='RUN_Fine-v0',
-    entry_point='morphmaze:RUN',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/run.json'},
+    id='run-fine-v0',
+    entry_point='morphmaze:run',
+    kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/run-fine.json'},
     max_episode_steps=800,
 )
 
 
 
 register(
-    id='GROW_Coarse-v0',
-    entry_point='morphmaze:GROW',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/grow.json'},
+    id='gorw-coarse-v0',
+    entry_point='morphmaze:grow',
+    kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/grow-coarse.json'},
     max_episode_steps=600,
 )
 
 register(
-    id='GROW_Fine-v0',
-    entry_point='morphmaze:GROW',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/grow.json'},
+    id='grow-fine-v0',
+    entry_point='morphmaze:grow',
+    kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/grow-fine.json'},
     max_episode_steps=600,
 )
 
 
 
 register(
-    id='KICK_Coarse-v0',
-    entry_point='morphmaze:KICK',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/kick.json'},
+    id='kick-coarse-v0',
+    entry_point='morphmaze:kick',
+    kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/kick-coarse.json'},
     max_episode_steps=500,
 )
 
 register(
-    id='KICK_Fine-v0',
-    entry_point='morphmaze:KICK',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/kick.json'},
+    id='kick-fine-v0',
+    entry_point='morphmaze:kick',
+    kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/kick-fine.json'},
     max_episode_steps=500,
 )
 
 
 
 register(
-    id='DIG_Coarse-v0',
-    entry_point='morphmaze:DIG',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/dig.json'},
+    id='dig-coarse-v0',
+    entry_point='morphmaze:dig',
+    kwargs={'action_res': 8, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/dig-coarse.json'},
     max_episode_steps=1000,
 )
 
 register(
-    id='DIG_Fine-v0',
-    entry_point='morphmaze:DIG',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 2, 'cfg_path':current_directory + '/cfg/dig.json'},
+    id='dig-fine-v0',
+    entry_point='morphmaze:dig',
+    kwargs={'action_res': 16, 'action_res_resize': 2, 'cfg_path':current_directory + '/cfg/dig-fine.json'},
     max_episode_steps=1000,
 )
 
 
 
 register(
-    id='OBSTACLE_Coarse-v0',
-    entry_point='morphmaze:OBSTACLE',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/obstacle.json'},
+    id='obstacle-coarse-v0',
+    entry_point='morphmaze:obstacle',
+    kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/obstacle-coarse.json'},
     max_episode_steps=800,
 )
 
 register(
-    id='OBSTACLE_Fine-v0',
-    entry_point='morphmaze:OBSTACLE',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/obstacle.json'},
+    id='obstacle-fine-v0',
+    entry_point='morphmaze:obstacle',
+    kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/obstacle-fine.json'},
     max_episode_steps=800,
 )
 
 
 
 register(
-    id='CATCH_Coarse-v0',
-    entry_point='morphmaze:CATCH',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/catch.json'},
+    id='catch-coarse-v0',
+    entry_point='morphmaze:catch',
+    kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/catch-coarse.json'},
     max_episode_steps=1200,
 )
 
 register(
-    id='CATCH_Fine-v0',
-    entry_point='morphmaze:CATCH',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/catch.json'},
+    id='catch-fine-v0',
+    entry_point='morphmaze:catch',
+    kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/catch-fine.json'},
     max_episode_steps=1200,
 )
 
 
 
 register(
-    id='SLOT_Coarse-v0',
-    entry_point='morphmaze:SLOT',
-    kwargs={'action_dim': 2*8**2, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/slot.json'},
+    id='slot-coarse-v0',
+    entry_point='morphmaze:slot',
+    kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/slot-coarse.json'},
     max_episode_steps=1500,
 )
 
 register(
-    id='SLOT_Fine-v0',
-    entry_point='morphmaze:SLOT',
-    kwargs={'action_dim': 2*16**2, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/slot.json'},
+    id='slot-fine-v0',
+    entry_point='morphmaze:slot',
+    kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/slot-fine.json'},
     max_episode_steps=1500,
 )

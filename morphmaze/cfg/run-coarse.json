@@ -8,7 +8,7 @@
     "gravity": [0, -9],
     "offset": [0.0, 0.16],
     "max_actuation": 45,
-    "action_dim": 128,
+    "action_res": 8,
     "action_res_resize": 8,
     "obs_res": 64,
     "obs_res_resize": 8,

@@ -1,0 +1,19 @@
+{
+    "n_grid": 128,
+    "mu_0": 10000,
+    "lambda_0": 1000,
+    "yield_stress": 85,
+    "mass": [2, 2],
+    "particle_num_list": [20000, 2000],
+    "gravity": [0, -20],
+    "offset": [0.0, 0.16],
+    "max_actuation": 40,
+    "action_res": 8,
+    "action_res_resize": 8,
+    "obs_res": 64,
+    "obs_res_resize": 8,
+    "repeat_times": 100,
+    "reward_params": [2, 6, 1, 0.0002, 3],
+    "visualize": true,
+    "save_file_name": "."
+}
