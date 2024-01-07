@@ -30,6 +30,20 @@ pip install git+https://github.com/suninghuang19/morphmaze.git
 python test_env.py
 ```
 
+#### If you want to set up a gym environment, just run:
+
+```python
+import gym
+import taichi as ti
+import morphmaze
+
+ti.init(arch=ti.gpu)
+# init coarse env
+env = gym.make("shapematch-coarse-v0")
+# init fine env
+env = gym.make("shapematch-fine-v0")
+```
+
 
 
 ### Benchmark Introduction
@@ -59,18 +73,3 @@ python test_env.py
 |  obstacle  |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
 |   catch    |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
 |    slot    |      (64, 64, 3)       |                (8, 8, 2)                 |             (16, 16, 2)              |                   (64, 64, 2)                    |
-
-#### If you want to set up a gym environment, just run:
-
-```python
-import gym
-import taichi as ti
-import morphmaze
-
-ti.init(arch=ti.gpu)
-# init coarse env
-env = gym.make("shapematch-coarse-v0")
-# init fine env
-env = gym.make("shapematch-fine-v0")
-```
-
