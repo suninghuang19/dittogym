@@ -14,7 +14,7 @@ This repo is the official environment implementation of ***[Morphological Maze: 
 }
 ```
 
-For questions about code, please create an issue on github. For questions about paper, please reach me at hsn19@mails.tsiinghua.edu.cn
+For questions about code, please create an issue on github. For questions about paper, please reach me at hsn19@mails.tsinghua.edu.cn
 
 *****
 
