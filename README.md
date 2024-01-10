@@ -5,7 +5,7 @@
 [Suning Huang<sup>1</sup>](https://suninghuang19.github.io/), [Boyuan Chen<sup>2</sup>](https://boyuan.space/), [Huazhe Xu<sup>1</sup>](http://hxu.rocks//), [Vincent Sitzmann<sup>2</sup>](https://www.vincentsitzmann.com/) <br/>
 <sup>1</sup>Tsinghua <sup>2</sup>MIT </br>
 
-![](./teaser/catch.gif)
+<p align="center">   <img src="./teaser/catch.gif" alt="M" style="display: inline-block;" /> </p>
 
 This repo is the official environment implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***. We set up a comprehensive benchmark including 8 different tasks for facilitating the research on novel highly reconfigurable robot. You can also check the implementation of the policy **CFP** in ***[here](https://github.com/suninghuang19/cfp)***.
 
