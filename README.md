@@ -7,7 +7,9 @@
 
 ![](./teaser/catch.gif)
 
-This repo is the official environment implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***. We set up a comprehensive benchmark including 8 different tasks for facilitating the research on novel highly reconfigurable robot. If you find this work helpful to your research, please cite us as:
+This repo is the official environment implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***. We set up a comprehensive benchmark including 8 different tasks for facilitating the research on novel highly reconfigurable robot. You can also check the implementation of the policy **CFP** in ***[here](https://github.com/suninghuang19/cfp)***.
+
+If you find this work helpful to your research, please cite us as:
 
 ```
 @inproceedings{
