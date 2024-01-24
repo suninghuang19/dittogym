@@ -1,13 +1,13 @@
-# Morphological Maze
+# DittoGym
 
-#### [[Project Website]](https://morphologicalmaze.github.io/) [[Paper]](./paper/Morphological_Maze_Control_Reconfigurable_Soft_Robots_with_Fine_grained_Morphology_Change.pdf)
+#### [[Project Website]](https://dittogym.github.io/) [[Paper]](./paper/Ditto_Learning_to_Control_Soft_Shape_Shifting_Robots)
 
 [Suning Huang<sup>1</sup>](https://suninghuang19.github.io/), [Boyuan Chen<sup>2</sup>](https://boyuan.space/), [Huazhe Xu<sup>1</sup>](http://hxu.rocks//), [Vincent Sitzmann<sup>2</sup>](https://www.vincentsitzmann.com/) <br/>
 <sup>1</sup>Tsinghua <sup>2</sup>MIT </br>
 
 <p align="center">   <img src="./teaser/catch.gif" alt="M" style="display: inline-block;" /> </p>
 
-This repo is the official environment implementation of ***[Morphological Maze: Control Reconfigurable Soft Robots with Fine-grained Morphology Change](https://morphologicalmaze.github.io/)***. We set up a comprehensive benchmark including 8 different tasks for facilitating the research on novel highly reconfigurable robot. You can also check the implementation of the policy **CFP** in ***[here](https://github.com/suninghuang19/cfp)***.
+This repo is the official environment implementation of ***[DittoGym: Learning to Control Soft Shape-Shifting Robots](https://dittogym.github.io/)***. We set up a comprehensive benchmark including 8 different tasks for facilitating the research on novel highly reconfigurable robot. You can also check the implementation of the policy **CFP** in ***[here](https://github.com/suninghuang19/cfp)***.
 
 If you find this work helpful to your research, please cite us as:
 
@@ -23,7 +23,7 @@ For questions about code, please create an issue on github. For questions about 
 #### To create environment, simply run the following command:
 
 ```python
-pip install git+https://github.com/suninghuang19/morphmaze.git
+pip install git+https://github.com/suninghuang19/dittogym.git
 ```
 
 #### You can run the following command to check if successfully installed:
@@ -37,7 +37,7 @@ python test_env.py
 ```python
 import gym
 import taichi as ti
-import morphmaze
+import dittogym
 
 ti.init(arch=ti.gpu)
 # init coarse env
@@ -50,7 +50,7 @@ env = gym.make("shapematch-fine-v0")
 
 ### Benchmark Introduction
 
-**<font color=red>Videos can be found at [here](https://morphologicalmaze.github.io/).</font>**
+**<font color=red>Videos can be found at [here](https://dittogym.github.io/).</font>**
 
 - **SHAPE MATCH:** The robot is initialized as a circle in a zero-gravity environment. It has to alter its shape to mirror predefined geometric or alphabetical form. The score is calculated on the basis of the congruence between the robot's current shape and the target shape.
 - **RUN:** The robot is initialized on a plain and the task requires a robot to move forward to the greatest possible distance within a stipulated period. The score is governed by the distance traversed and the speed maintained.
@@ -63,7 +63,7 @@ env = gym.make("shapematch-fine-v0")
 
 ![](./teaser/teaser.png)
 
-**MorphMaze ENV Parameters:**
+**DittoGym ENV Parameters:**
 
 |  Env Name  | Observation Resolution | Coarse Action Resolution (env-coarse-v0) | Fine Action Resolution (env-fine-v0) | Upsample Action Signal to Fit Final Action Field |
 | :--------: | :--------------------: | :--------------------------------------: | :----------------------------------: | :----------------------------------------------: |

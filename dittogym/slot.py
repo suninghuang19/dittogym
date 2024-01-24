@@ -4,18 +4,18 @@ import gym
 import json
 import numpy as np
 import taichi as ti
-from morphmaze.morphmaze import morphmaze
+from dittogym.dittogym import dittogym
 
 OBS_ACT_CENTER_Y = 0.28
 GAP = 36
 GAP_1 = 40
 
 @ti.data_oriented
-class slot(morphmaze):
+class slot(dittogym):
     def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
         super(slot, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
             action_res=action_res, wandb_logger=wandb_logger)
-        print("*******************Morphological Maze SLOT*******************")
+        print("******************* SLOT *******************")
         # initial robot task-SLOT
         self.obs_auto_reset = False
         if robot_img_path is not None:

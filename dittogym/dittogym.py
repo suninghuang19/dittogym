@@ -8,9 +8,9 @@ import taichi as ti
 from abc import ABC, abstractmethod
 
 @ti.data_oriented
-class morphmaze(gym.Env, ABC):
+class dittogym(gym.Env, ABC):
     def __init__(self, cfg_path=None, action_res=None, action_res_resize=None, wandb_logger=None):
-        print("*******************Welcome to Morphological Maze*******************")
+        print("******************* Welcome to DittoGym *******************")
         current_file_path = os.path.abspath(__file__)
         self.current_directory = os.path.dirname(current_file_path)
         self.wandb_logger = wandb_logger

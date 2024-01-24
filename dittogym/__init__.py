@@ -14,14 +14,14 @@ current_directory = os.path.dirname(current_file_path)
 
 register(
     id='shapematch-coarse-v0',
-    entry_point='morphmaze:shapematch',
+    entry_point='dittogym:shapematch',
     kwargs={'action_res': 32, 'action_res_resize': 2, 'cfg_path':current_directory + '/cfg/shapematch-coarse.json'},
     max_episode_steps=30,
 )
 
 register(
     id='shapematch-fine-v0',
-    entry_point='morphmaze:shapematch',
+    entry_point='dittogym:shapematch',
     kwargs={'action_res': 64, 'action_res_resize': 1, 'cfg_path':current_directory + '/cfg/shapematch-fine.json'},
     max_episode_steps=30,
 )
@@ -30,14 +30,14 @@ register(
 
 register(
     id='run-coarse-v0',
-    entry_point='morphmaze:run',
+    entry_point='dittogym:run',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/run-coarse.json'},
     max_episode_steps=800,
 )
 
 register(
     id='run-fine-v0',
-    entry_point='morphmaze:run',
+    entry_point='dittogym:run',
     kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/run-fine.json'},
     max_episode_steps=800,
 )
@@ -46,14 +46,14 @@ register(
 
 register(
     id='gorw-coarse-v0',
-    entry_point='morphmaze:grow',
+    entry_point='dittogym:grow',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/grow-coarse.json'},
     max_episode_steps=600,
 )
 
 register(
     id='grow-fine-v0',
-    entry_point='morphmaze:grow',
+    entry_point='dittogym:grow',
     kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/grow-fine.json'},
     max_episode_steps=600,
 )
@@ -62,14 +62,14 @@ register(
 
 register(
     id='kick-coarse-v0',
-    entry_point='morphmaze:kick',
+    entry_point='dittogym:kick',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/kick-coarse.json'},
     max_episode_steps=500,
 )
 
 register(
     id='kick-fine-v0',
-    entry_point='morphmaze:kick',
+    entry_point='dittogym:kick',
     kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/kick-fine.json'},
     max_episode_steps=500,
 )
@@ -78,14 +78,14 @@ register(
 
 register(
     id='dig-coarse-v0',
-    entry_point='morphmaze:dig',
+    entry_point='dittogym:dig',
     kwargs={'action_res': 8, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/dig-coarse.json'},
     max_episode_steps=1000,
 )
 
 register(
     id='dig-fine-v0',
-    entry_point='morphmaze:dig',
+    entry_point='dittogym:dig',
     kwargs={'action_res': 16, 'action_res_resize': 2, 'cfg_path':current_directory + '/cfg/dig-fine.json'},
     max_episode_steps=1000,
 )
@@ -94,14 +94,14 @@ register(
 
 register(
     id='obstacle-coarse-v0',
-    entry_point='morphmaze:obstacle',
+    entry_point='dittogym:obstacle',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/obstacle-coarse.json'},
     max_episode_steps=800,
 )
 
 register(
     id='obstacle-fine-v0',
-    entry_point='morphmaze:obstacle',
+    entry_point='dittogym:obstacle',
     kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/obstacle-fine.json'},
     max_episode_steps=800,
 )
@@ -110,14 +110,14 @@ register(
 
 register(
     id='catch-coarse-v0',
-    entry_point='morphmaze:catch',
+    entry_point='dittogym:catch',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/catch-coarse.json'},
     max_episode_steps=1200,
 )
 
 register(
     id='catch-fine-v0',
-    entry_point='morphmaze:catch',
+    entry_point='dittogym:catch',
     kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/catch-fine.json'},
     max_episode_steps=1200,
 )
@@ -126,14 +126,14 @@ register(
 
 register(
     id='slot-coarse-v0',
-    entry_point='morphmaze:slot',
+    entry_point='dittogym:slot',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/slot-coarse.json'},
     max_episode_steps=1500,
 )
 
 register(
     id='slot-fine-v0',
-    entry_point='morphmaze:slot',
+    entry_point='dittogym:slot',
     kwargs={'action_res': 16, 'action_res_resize': 4, 'cfg_path':current_directory + '/cfg/slot-fine.json'},
     max_episode_steps=1500,
 )

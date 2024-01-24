@@ -1,9 +1,9 @@
 import gym
 import taichi as ti
-import morphmaze
+import dittogym
 
 ti.init(arch=ti.gpu)
 gym.make("run-fine-v0")
 
 print("SUCCESS!")
-print("You have successfully installed morphmaze and its dependencies.")
+print("You have successfully installed dittogym and its dependencies.")

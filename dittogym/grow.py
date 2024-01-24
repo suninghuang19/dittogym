@@ -4,17 +4,17 @@ import gym
 import json
 import numpy as np
 import taichi as ti
-from morphmaze.morphmaze import morphmaze
+from dittogym.dittogym import dittogym
 
 OBS_ACT_CENTER_X = 0.5
 OBS_ACT_CENTER_Y = 0.4
 
 @ti.data_oriented
-class grow(morphmaze):
+class grow(dittogym):
     def __init__(self, cfg_path, action_res, action_res_resize, wandb_logger=None, robot_img_path=None, particles_num=15000):
         super(grow, self).__init__(cfg_path=cfg_path, action_res_resize=action_res_resize,\
             action_res=action_res, wandb_logger=wandb_logger)
-        print("*******************Morphological_Maze GROW*******************")
+        print("******************* GROW *******************")
         # initial robot task-GROW
         self.obs_auto_reset = False
         if robot_img_path is not None:
