@@ -1,6 +1,6 @@
 # DittoGym
 
-#### [[Project Website]](https://dittogym.github.io/) [[Paper]](./paper/Ditto_Learning_to_Control_Soft_Shape_Shifting_Robots)
+#### [[Project Website]](https://dittogym.github.io/) [[Paper]](https://arxiv.org/pdf/2401.13231.pdf)
 
 [Suning Huang<sup>1</sup>](https://suninghuang19.github.io/), [Boyuan Chen<sup>2</sup>](https://boyuan.space/), [Huazhe Xu<sup>1</sup>](http://hxu.rocks//), [Vincent Sitzmann<sup>2</sup>](https://www.vincentsitzmann.com/) <br/>
 <sup>1</sup>Tsinghua <sup>2</sup>MIT </br>
@@ -12,7 +12,13 @@ This repo is the official environment implementation of ***[DittoGym: Learning t
 If you find this work helpful to your research, please cite us as:
 
 ```
-@inproceedings{
+  @misc{huang2024dittogym,
+    title={DittoGym: Learning to Control Soft Shape-Shifting Robots}, 
+    author={Suning Huang and Boyuan Chen and Huazhe Xu and Vincent Sitzmann},
+    year={2024},
+    eprint={2401.13231},
+    archivePrefix={arXiv},
+    primaryClass={cs.RO}
 }
 ```
 
