@@ -7,7 +7,6 @@ import taichi as ti
 from dittogym.dittogym import dittogym
 
 OBS_ACT_CENTER_Y = 0.28
-GAP = 60
 
 @ti.data_oriented
 class run(dittogym):
