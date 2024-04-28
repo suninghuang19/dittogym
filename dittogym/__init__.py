@@ -45,7 +45,7 @@ register(
 
 
 register(
-    id='gorw-coarse-v0',
+    id='grow-coarse-v0',
     entry_point='dittogym:grow',
     kwargs={'action_res': 8, 'action_res_resize': 8, 'cfg_path':current_directory + '/cfg/grow-coarse.json'},
     max_episode_steps=600,

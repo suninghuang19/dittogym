@@ -7,6 +7,7 @@ import taichi as ti
 from dittogym.dittogym import dittogym
 
 OBS_ACT_CENTER_Y = 0.28
+GAP = 60
 
 @ti.data_oriented
 class run(dittogym):
@@ -156,6 +157,12 @@ class run(dittogym):
             self.grid_v[i, j][1] += self.dt * self.gravity[None][1]
             self.grid_v[i, j] = 0.999 * self.grid_v[i, j]
             # # infinite horizon
+            if i > 32 - int(self.anchor[None][0] * self.n_grid) - self.bound\
+                and i < 35 - int(self.anchor[None][0] * self.n_grid) and j > GAP and self.grid_v[i, j][0] > 0:
+                self.grid_v[i, j][0] = 0
+            if i < 47 - int(self.anchor[None][0] * self.n_grid) + self.bound\
+                and i > 45 - int(self.anchor[None][0] * self.n_grid) and j > GAP and self.grid_v[i, j][0] < 0:
+                self.grid_v[i, j][0] = 0
             # up
             if j < self.bound * 20 and self.grid_v[i, j][1] < 0:
                 self.grid_v[i, j] = [0, 0]
@@ -174,5 +181,8 @@ class run(dittogym):
                             else:
                                 self.grid_v[i, j] = vit * (1 + self.coeff * lin / lit)
             # down
-            if j > self.n_grid - 3 and self.grid_v[i, j][1] > 0:
+            if (j > self.n_grid - self.bound * 10 and self.grid_v[i, j][1] > 0)\
+                or (i > 32 - int(self.anchor[None][0] * self.n_grid)\
+                    and i < 47 - int(self.anchor[None][0] * self.n_grid)\
+                        and j > GAP - 2 and j <= GAP and self.grid_v[i, j][1] > 0):
                 self.grid_v[i, j][1] = 0
