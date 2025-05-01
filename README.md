@@ -1,6 +1,6 @@
 # DittoGym
 
-#### [[Project Website]](https://dittogym.github.io/) [[Paper]](https://arxiv.org/pdf/2401.13231.pdf)
+#### [[Project Website]](https://suninghuang19.github.io/dittogym_page/) [[Paper]](https://arxiv.org/pdf/2401.13231.pdf)
 
 [Suning Huang<sup>1</sup>](https://suninghuang19.github.io/), [Boyuan Chen<sup>2</sup>](https://boyuan.space/), [Huazhe Xu<sup>1</sup>](http://hxu.rocks//), [Vincent Sitzmann<sup>2</sup>](https://www.vincentsitzmann.com/) <br/>
 <sup>1</sup>Tsinghua <sup>2</sup>MIT </br>
